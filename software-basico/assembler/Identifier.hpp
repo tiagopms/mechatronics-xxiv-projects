@@ -15,7 +15,7 @@ using namespace std;
 
 void identifyTypeR(string token);
 
-bool identifyToken(string token);
+void identifyToken(string token);
 
 
 #endif
