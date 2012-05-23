@@ -5,17 +5,25 @@
 #include <Identifier.hpp>
 #include <ProcessLogger.h>
 
+
+#include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include <sstream>
 #include <string>
 #include <armadillo>
 
-#define INPUT_FILE "input.txt"
-#define OUTPUT_FILE "output.txt"
+#define INPUT_FILE		"input.txt"
+#define OUTPUT_FILE		"output.txt"
+
+#define NULL_REGISTER	"00000"
+#define NULL_SHANT		"00000"
 
 using namespace std;
 
 int main();
+void my_itoa(int value, std::string& buf, int base, unsigned int size);
+void binary(int number);
 
 void createTables();
 bool createSimbolsTable();
