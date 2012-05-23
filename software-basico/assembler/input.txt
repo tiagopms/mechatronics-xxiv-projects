@@ -1,1 +1,74 @@
-add $t5, $t6, $t7
+addi $s4, $zero, 9
+addi $s5, $zero, 3
+jal criarMatriz
+add $t9, $zero, $zero
+addi $s3, $sp, -32
+jal somarMatriz
+jal showMatriz
+add $t9, $zero, $zero
+jal multiplicarMatriz
+jal determinante
+jal showMatriz
+j exit
+criarMatriz: la $s1, matriz2
+jr $ra
+lado2: lw $t1, 0($s1)
+showMatriz: beq $s4, 1, lado1show
+beq $s4, 4, lado2show 
+add $v0, $zero, 1
+lw $a0, -32($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text2
+syscall
+add $v0, $zero, 1
+lw $a0, -28($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text2
+syscall
+add $v0, $zero, 1
+lw $a0, -24($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text1
+syscall
+add $v0, $zero, 1
+lw $a0, -20($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text2
+syscall
+add $v0, $zero, 1
+lw $a0, -16($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text2
+syscall
+lado2show:
+add $v0, $zero, 1
+lw $a0, -12($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text1
+syscall
+add $v0, $zero, 1
+lw $a0, -8($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text2
+syscall
+add $v0, $zero, 1
+lw $a0, -4($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text2
+syscall
+lado1show: add $v0, $zero, 1
+lw $a0, 0($s3)
+syscall
+add $v0, $zero, 4
+la $a0, text1
+syscall
+syscall
+jr $ra

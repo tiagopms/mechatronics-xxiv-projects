@@ -1,13 +1,12 @@
 CXX = g++
 CPPFLAGS = -Wall -O2 -g
 
-SOURCES =  Assembler.cpp
+SOURCES =  Tables.cpp Identifier.cpp Assembler.cpp
 OBJECTS = $(patsubst %.cpp, %.o, $(SOURCES))
 EXECUTABLE = Assembler
 
 SHARED_OBJ = ../shared/ProcessLogger.o
 BOOST_LIBS = -lboost_thread -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
-PLAYER_LIBS = `pkg-config --cflags playerc++` `pkg-config --libs playerc++`
 ARMA_LIBS = -larmadillo
 
 INC = -I. -I../shared

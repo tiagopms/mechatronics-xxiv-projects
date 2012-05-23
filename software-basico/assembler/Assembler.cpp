@@ -1,5 +1,9 @@
 #include <Assembler.hpp>
 
+map<string, vector<string> > instructionTable;
+map<string, string> registerTable;
+map<string, int> simbolTable;
+
 int main()
 {
 	//create tables
@@ -17,48 +21,65 @@ int main()
 void createTables()
 {
 	//instructions
-	//open instructions file
-	
-	//loop to go in each line
-	
-		//create instructions table
-	
-	//close file
+	instructionTable = createInstructionTable();
 	
 	//registers
-	//open registers file
-	
-	//loop to go in each line
-	
-		//create registers table
-	
-	//close file
+	registerTable = createRegisterTable();
 }
 
-void createSimbolsTable()
+bool createSimbolsTable()
 {
-	//open file
+	int counter = 0;
+	string line;
+	string filename = INPUT_FILE;
 	
+	//open input file
+	ifstream cfg(filename.c_str(), ifstream::in);
+	if(cfg.fail())
+		errorSignal(101, 0);
 	
 	//loop to go in each line
-	
-		//create simbols table
+	while(cfg.good())
+	{
+		counter++;
+		//get single line
+		getline(cfg, line);
+		
+		//updates simbols table
+		findLabel(line, counter);
+	}
 	
 	//close file
+	cfg.close();
 	
+	return true;
+}
+
+void findLabel(string line, int counter)
+{
+	if(identifyToken(line))
+	{
+		LOG(LEVEL_WARN) << "Token Found";
+		LOG(LEVEL_INFO) << line;
+		LOG(LEVEL_INFO) << "Line number = " << counter;
+	}
 }
 
 bool assemble()
 {
 	int type, counter = 0;
 	string line;
-	string filename = INPUT;
+	string functionCode;
+	string inputFilename = INPUT_FILE;
+	string outputFilename = OUTPUT_FILE;
+	
 	//open input and output file
-	ifstream cfg(filename.c_str(), ifstream::in);
+	ifstream cfg(inputFilename.c_str(), ifstream::in);
 	if(cfg.fail())
-		errorSignal(100000);//change this ------------------------------------------
-
-
+		errorSignal(102, 0);
+	ofstream output(outputFilename.c_str(), ofstream::out);
+	if(!output.is_open())
+		errorSignal(103, 0);
 
 	//loop to go in each line
 	while(cfg.good())
@@ -71,20 +92,40 @@ bool assemble()
 		type = reconizeType(line);
 		
 		//if not found send error signal
-		errorSignal(2, counter);
+		if(type == 0)
+			errorSignal(2, counter);
+		
+		LOG(LEVEL_WARN) << line;
+		LOG(LEVEL_WARN) << "Line number = " << counter;
 		
 		switch(type)
 		{
 			case 1:
-				assembleTypeR(line);
+				functionCode = assembleTypeR1(line);
 				break;
 			case 2:
-				assembleTypeI(line);
+				functionCode = assembleTypeR2(line, counter);
 				break;
 			case 3:
-				assembleTypeJ(line);
+				functionCode = assembleTypeI1(line);
+				break;
+			case 4:
+				functionCode = assembleTypeI2(line);
+				break;
+			case 5:
+				functionCode = assembleTypeJ(line);
+				break;
+			case 6:
+				functionCode = assembleTypeFloat(line);
+				break;
+			case 7:
+				functionCode = assembleTypePseudo(line);
 				break;
 		}
+		
+		LOG(LEVEL_WARN) << "Line code = " << functionCode;
+		
+		output << functionCode << "\n";
 	}
 		
 	
@@ -97,130 +138,204 @@ bool assemble()
 int reconizeType(string line)
 {
 	
-	return 0;
+	return 2;
 }
 
-void assembleTypeR(string line)
+string assembleTypeR1(string line)
 {
+	string opCode, rd, rs, rt, shant, funct;
 	//identify opcode, shant and funct
 	
 	//identify registers
-	registerCode(line);
+	//registerCode(line);
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rd << rs << rt << shant << funct;
+	string functionCode = ss.str();
 	
 	//make translation to machine code
-	
+	return functionCode;
 }
 
-void assembleTypeI(string line)
+string assembleTypeR2(string line, int counter)
 {
+	string opCode, rsCode, rtCode, rdCode, shant, funct;
+	string function, rd, rs, rt;
+	
+	//identify function
+	function = "add";
+	
+	//identify opcode, shant and funct
+	opCode = instructionTable[function][1];
+	shant = instructionTable[function][1];
+	funct = instructionTable[function][2];
+	
+	//identify registers
+	rs = "$t2";
+	rt = "$t1";
+	rd = "$t0";
+	
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	rdCode = registerTable[rd];
+	
+	//check if valid registers
+	checkRegister(rsCode, counter);
+	checkRegister(rtCode, counter);
+	checkRegister(rdCode, counter);
+	
+	LOG(LEVEL_WARN) << "Register code " << rs << " = " << rsCode;
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rdCode << rsCode << rtCode << shant << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+string assembleTypeI1(string line)
+{
+	string opCode, rs, rt, imm;
 	//identify opcode
 	
 	//identify registers
 	
 	//identify number if label check simbols table
 	
-	//make translation to machine code
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rs << rt << imm;
+	string functionCode = ss.str();
 	
+	//make translation to machine code
+	return functionCode;
 }
 
-void assembleTypeJ(string line)
+string assembleTypeI2(string line)
 {
+	string opCode, rs, rt, imm;
+	//identify opcode
+	
+	//identify registers
+	
+	//identify number if label check simbols table
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rs << rt << imm;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+string assembleTypeJ(string line)
+{
+	string opCode, imm;
 	//identify opcode
 	
 	//identify number if label check simbols table
 	
-	//make translation to machine code
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << imm;
+	string functionCode = ss.str();
 	
+	//make translation to machine code
+	return functionCode;
 }
 
-string registerCode(string registerUsed)
+string assembleTypeFloat(string line)
 {
-	//compare resgisterUsed to registers table
+	string opCode, type, fs, ft, fd, funct;
+	//identify opcode
 	
-	//get register's code
+	//identify registers
+	
+	//identify number if label check simbols table
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << type << fs << ft << fd << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+string assembleTypePseudo(string line)
+{
+	string opCode, rd, rs, rt, shant, funct;
+	//identify both opcodes
+	
+	//identify registers
+	
+	//identify numbers if label check simbols table
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rd << rs << rt << shant << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+bool checkRegister(string registerCode, int counter)
+{
+	if(registerCode.size() == 0)
+		errorSignal(15, counter);
 	
 	//return code found in string format
-	return "01010"; //change this -----------------------------------------
+	return true;
 }
 
-void errorSignal(int errorCode, int counter)
+void errorSignal(int errorCode, int line)
 {
-	LOG(LEVEL_FATAL) << "Error found - Error number " << errorCode;
+	if (errorCode > 100)
+		LOG(LEVEL_FATAL) << "Error found - Error number " << errorCode;
+	else
+		LOG(LEVEL_ERROR) << "Error found - Error number " << errorCode;
+	
+	if (line > 0)
+	{
+		LOG(LEVEL_INFO) << "Error in line " << line;
+	}
 	
 	switch(errorCode)
 	{
 		case 1:
-			LOG(LEVEL_ERROR) << "Lexic Error\nError due to already existent token used as label";
+			LOG(LEVEL_INFO) << "Lexic Error\nError due to already existent token used as label";
 			break;
 		case 2:
-			LOG(LEVEL_ERROR) << "Error due to non existent function used";
+			LOG(LEVEL_INFO) << "Error due to non existent function used";
 		break;
 		case 3:
-			LOG(LEVEL_ERROR) << "Error due to register with no function";
+			LOG(LEVEL_INFO) << "Error due to register with no function";
 		break;
 		case 4:
-			LOG(LEVEL_ERROR) << "Error due to missing parameter in function";
+			LOG(LEVEL_INFO) << "Error due to missing parameter in function";
 		break;
 		case 5:
-			LOG(LEVEL_ERROR) << "Error due to non existent register used";
+			LOG(LEVEL_INFO) << "Error due to non existent register used";
 		break;
 		case 6:
-			LOG(LEVEL_ERROR) << "Error due to no $ before register";
+			LOG(LEVEL_INFO) << "Error due to no $ before register";
 		break;
 		case 7:
-			LOG(LEVEL_ERROR) << "Error due to wrong format function";
+			LOG(LEVEL_INFO) << "Error due to wrong format function";
 		break;
 		case 8:
-			LOG(LEVEL_ERROR) << "Error due to existence of extra parameters";
+			LOG(LEVEL_INFO) << "Error due to existence of extra parameters";
+		break;
+		case 101:
+			LOG(LEVEL_INFO) << "Unable to open file " << INPUT_FILE;
 		break;
 	}
 	
 	
 }
-
-/*
-bool Config::read(string filename)
-{
-	ifstream cfg(filename.c_str(), ifstream::in);
-
-	if(cfg.fail())
-		return false;
-
-	string line;
-
-	while(cfg.good())
-	{
-		getline(cfg, line);
-		useLine(line);
-	}
-
-	cfg.close();
-
-	return true;
-}
-
-bool Config::parseLine(string line)
-{
-	if((line[0] == '#') || (line.size() == 0))
-		return false;
-
-	// construct a stream from the string
-	stringstream ss(line);
-
-	// use stream iterators to copy the stream to the vector as whitespace separated strings
-	istream_iterator<string> it(ss);
-	istream_iterator<string> end;
-	vector<string> tokens(it, end);
-
-	LOG(LEVEL_VERBOSE) << "tokens size: " << tokens.size();
-
-	string key(tokens[0]);
-	tokens.erase(tokens.begin());
-	config[key] = tokens;
-
-	LOG(LEVEL_VERBOSE) << "config[ " << key
-					   << "] size: " << config[key].size() << endl;
-
-	return true;
-}
-*/
