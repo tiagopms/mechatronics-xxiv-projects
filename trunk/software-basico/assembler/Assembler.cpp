@@ -107,19 +107,34 @@ bool assemble()
 				functionCode = assembleTypeR2(line, counter);
 				break;
 			case 3:
-				functionCode = assembleTypeI1(line, counter);
+				functionCode = assembleTypeR3(line, counter);
 				break;
 			case 4:
-				functionCode = assembleTypeI2(line, counter);
+				functionCode = assembleTypeI1(line, counter);
 				break;
 			case 5:
-				functionCode = assembleTypeJ(line, counter);
+				functionCode = assembleTypeI2(line, counter);
 				break;
 			case 6:
-				functionCode = assembleTypeFloat(line, counter);
+				functionCode = assembleTypeJ(line, counter);
 				break;
 			case 7:
-				functionCode = assembleTypePseudo(line, counter);
+				functionCode = assembleTypeFloat(line, counter);
+				break;
+			case 8:
+				functionCode = assembleTypePseudo1(line, counter);
+				break;
+			case 9:
+				functionCode = assembleTypePseudo2(line, counter);
+				break;
+			case 10:
+				functionCode = assembleTypePseudo3(line, counter);
+				break;
+			case 11:
+				functionCode = assembleTypePseudo4(line, counter);
+				break;
+			case 12:
+				functionCode = assembleTypePseudo5(line, counter);
 				break;
 		}
 		
@@ -144,7 +159,7 @@ int reconizeType(string line)
 //normal type r functions -> add $rd,$rs,$rt
 string assembleTypeR1(string line, int counter)
 {
-	string opCode, rsCode, rtCode, rdCode, shant, funct;
+	string opCode, rsCode, rtCode, rdCode, funct;
 	string function, rd, rs, rt;
 	
 	//identify function
@@ -152,7 +167,6 @@ string assembleTypeR1(string line, int counter)
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
-	shant = instructionTable[function][1];
 	funct = instructionTable[function][2];
 	
 	//identify registers
@@ -172,7 +186,7 @@ string assembleTypeR1(string line, int counter)
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rdCode << rsCode << rtCode << shant << funct;
+	ss << opCode << rsCode << rtCode << rdCode << NULL_SHANT << funct;
 	string functionCode = ss.str();
 	
 	//make translation to machine code
@@ -182,35 +196,33 @@ string assembleTypeR1(string line, int counter)
 //shift type r functions -> sll $rd,$rs,imm
 string assembleTypeR2(string line, int counter)
 {
-	string opCode, rsCode, rtCode, rdCode, shant, funct;
-	string function, rd, rs, rt;
+	string opCode, rsCode, rdCode, shant, funct;
+	string function, rd, rs, imm;
 	
 	//identify function
-	function = "add";
+	function = "sll";
+	imm = "5";
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
-	shant = instructionTable[function][1];
+	my_itoa(atoi(imm.c_str()), shant, 2, 5);
 	funct = instructionTable[function][2];
 	
 	//identify registers
 	rs = "$t2";
-	rt = "$t1";
 	rd = "$t0";
 	
 	//get register codes
 	rsCode = registerTable[rs];
-	rtCode = registerTable[rt];
 	rdCode = registerTable[rd];
 	
 	//check if valid registers
 	checkRegister(rsCode, counter);
-	checkRegister(rtCode, counter);
 	checkRegister(rdCode, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rdCode << rsCode << rtCode << shant << funct;
+	ss << opCode << rdCode << rsCode << NULL_REGISTER << shant << funct;
 	string functionCode = ss.str();
 	
 	//make translation to machine code
@@ -220,15 +232,28 @@ string assembleTypeR2(string line, int counter)
 //jr function -> jr $rs
 string assembleTypeR3(string line, int counter)
 {
-	string opCode, rd, rs, rt, shant, funct;
+	string opCode, rsCode, funct;
+	string function, rs;
+	
+	//identify function
+	function = "jr";
+	
 	//identify opcode, shant and funct
+	opCode = instructionTable[function][1];
+	funct = instructionTable[function][2];
 	
 	//identify registers
-	//registerCode(line);
+	rs = "$t2";
+	
+	//get register codes
+	rsCode = registerTable[rs];
+	
+	//check if valid register
+	checkRegister(rsCode, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rd << rs << rt << shant << funct;
+	ss << opCode << rsCode << NULL_REGISTER << NULL_REGISTER << NULL_SHANT << funct;
 	string functionCode = ss.str();
 	
 	//make translation to machine code
@@ -238,16 +263,30 @@ string assembleTypeR3(string line, int counter)
 //normal type I functions -> addi $rt, $rs, imm
 string assembleTypeI1(string line, int counter)
 {
-	string opCode, rs, rt, imm;
+	string opCode, rsCode, rtCode, immCode;
+	string function, rs, rt, imm;
+	
+	//identify function
+	function = "addi";
 	//identify opcode
+	opCode = instructionTable[function][1];
 	
 	//identify registers
+	rs = "$t2";
+	rt = "$t5";
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	//check if valid register
+	checkRegister(rsCode, counter);
 	
 	//identify number if label check simbols table
+	//if number, transforms string decimal in string binary
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rs << rt << imm;
+	ss << opCode << rsCode << rtCode << immCode;
 	string functionCode = ss.str();
 	
 	//make translation to machine code
@@ -415,6 +454,20 @@ bool checkRegister(string registerCode, int counter)
 	
 	//return code found in string format
 	return true;
+}
+
+void my_itoa(int value, std::string& buf, int base, unsigned int size)
+{
+	int i = 30;
+	
+	buf = "";
+	
+	for(; value && i ; --i, value /= base) buf = "0123456789abcdef"[value % base] + buf;
+	
+	while(buf.size() < size)
+	{
+		buf = "0" + buf;
+	}
 }
 
 void errorSignal(int errorCode, int line)
