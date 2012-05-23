@@ -23,14 +23,18 @@ void findLabel(string line, int counter);
 
 bool assemble();
 int reconizeType(string line);
-string assembleTypeR1(string line);
+string assembleTypeR1(string line, int counter);
 string assembleTypeR2(string line, int counter);
-string assembleTypeR3(string line);
-string assembleTypeI1(string line);
-string assembleTypeI2(string line);
-string assembleTypeJ(string line);
-string assembleTypeFloat(string line);
-string assembleTypePseudo(string line);
+string assembleTypeR3(string line, int counter);
+string assembleTypeI1(string line, int counter);
+string assembleTypeI2(string line, int counter);
+string assembleTypeJ(string line, int counter);
+string assembleTypeFloat(string line, int counter);
+string assembleTypePseudo1(string line, int counter);
+string assembleTypePseudo2(string line, int counter);
+string assembleTypePseudo3(string line, int counter);
+string assembleTypePseudo4(string line, int counter);
+string assembleTypePseudo5(string line, int counter);
 
 bool checkRegister(string registerCode, int counter);
 
