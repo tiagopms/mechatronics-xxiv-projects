@@ -95,35 +95,35 @@ bool assemble()
 		if(type == 0)
 			errorSignal(2, counter);
 		
-		LOG(LEVEL_WARN) << line;
-		LOG(LEVEL_WARN) << "Line number = " << counter;
+		LOG(LEVEL_INFO) << "Line number = " << counter;
+		LOG(LEVEL_INFO) << line;
 		
 		switch(type)
 		{
 			case 1:
-				functionCode = assembleTypeR1(line);
+				functionCode = assembleTypeR1(line, counter);
 				break;
 			case 2:
 				functionCode = assembleTypeR2(line, counter);
 				break;
 			case 3:
-				functionCode = assembleTypeI1(line);
+				functionCode = assembleTypeI1(line, counter);
 				break;
 			case 4:
-				functionCode = assembleTypeI2(line);
+				functionCode = assembleTypeI2(line, counter);
 				break;
 			case 5:
-				functionCode = assembleTypeJ(line);
+				functionCode = assembleTypeJ(line, counter);
 				break;
 			case 6:
-				functionCode = assembleTypeFloat(line);
+				functionCode = assembleTypeFloat(line, counter);
 				break;
 			case 7:
-				functionCode = assembleTypePseudo(line);
+				functionCode = assembleTypePseudo(line, counter);
 				break;
 		}
 		
-		LOG(LEVEL_WARN) << "Line code = " << functionCode;
+		LOG(LEVEL_INFO) << "Line code = " << functionCode;
 		
 		output << functionCode << "\n";
 	}
@@ -141,23 +141,45 @@ int reconizeType(string line)
 	return 2;
 }
 
-string assembleTypeR1(string line)
+//normal type r functions -> add $rd,$rs,$rt
+string assembleTypeR1(string line, int counter)
 {
-	string opCode, rd, rs, rt, shant, funct;
+	string opCode, rsCode, rtCode, rdCode, shant, funct;
+	string function, rd, rs, rt;
+	
+	//identify function
+	function = "add";
+	
 	//identify opcode, shant and funct
+	opCode = instructionTable[function][1];
+	shant = instructionTable[function][1];
+	funct = instructionTable[function][2];
 	
 	//identify registers
-	//registerCode(line);
+	rs = "$t2";
+	rt = "$t1";
+	rd = "$t0";
+	
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	rdCode = registerTable[rd];
+	
+	//check if valid registers
+	checkRegister(rsCode, counter);
+	checkRegister(rtCode, counter);
+	checkRegister(rdCode, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rd << rs << rt << shant << funct;
+	ss << opCode << rdCode << rsCode << rtCode << shant << funct;
 	string functionCode = ss.str();
 	
 	//make translation to machine code
 	return functionCode;
 }
 
+//shift type r functions -> sll $rd,$rs,imm
 string assembleTypeR2(string line, int counter)
 {
 	string opCode, rsCode, rtCode, rdCode, shant, funct;
@@ -186,8 +208,6 @@ string assembleTypeR2(string line, int counter)
 	checkRegister(rtCode, counter);
 	checkRegister(rdCode, counter);
 	
-	LOG(LEVEL_WARN) << "Register code " << rs << " = " << rsCode;
-	
 	//concatenate strings
 	stringstream ss;
 	ss << opCode << rdCode << rsCode << rtCode << shant << funct;
@@ -197,7 +217,26 @@ string assembleTypeR2(string line, int counter)
 	return functionCode;
 }
 
-string assembleTypeI1(string line)
+//jr function -> jr $rs
+string assembleTypeR3(string line, int counter)
+{
+	string opCode, rd, rs, rt, shant, funct;
+	//identify opcode, shant and funct
+	
+	//identify registers
+	//registerCode(line);
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rd << rs << rt << shant << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+//normal type I functions -> addi $rt, $rs, imm
+string assembleTypeI1(string line, int counter)
 {
 	string opCode, rs, rt, imm;
 	//identify opcode
@@ -215,7 +254,8 @@ string assembleTypeI1(string line)
 	return functionCode;
 }
 
-string assembleTypeI2(string line)
+//loads and saves -> lw $rt,58($rs)
+string assembleTypeI2(string line, int counter)
 {
 	string opCode, rs, rt, imm;
 	//identify opcode
@@ -233,7 +273,8 @@ string assembleTypeI2(string line)
 	return functionCode;
 }
 
-string assembleTypeJ(string line)
+//jumps -> j Label or jal Label
+string assembleTypeJ(string line, int counter)
 {
 	string opCode, imm;
 	//identify opcode
@@ -249,7 +290,11 @@ string assembleTypeJ(string line)
 	return functionCode;
 }
 
-string assembleTypeFloat(string line)
+//float or double operations
+//float operations -> add.i $fd,$fs,$ft
+//double operations -> add.d $fd,$fs,$ft
+//this two have to be with register f
+string assembleTypeFloat(string line, int counter)
 {
 	string opCode, type, fs, ft, fd, funct;
 	//identify opcode
@@ -267,7 +312,85 @@ string assembleTypeFloat(string line)
 	return functionCode;
 }
 
-string assembleTypePseudo(string line)
+//move -> move $rt,$rs = addi $rt,$rs,0
+string assembleTypePseudo1(string line, int counter)
+{
+	string opCode, rd, rs, rt, shant, funct;
+	//identify both opcodes
+	
+	//identify registers
+	
+	//identify numbers if label check simbols table
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rd << rs << rt << shant << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+//clear -> clear $rt = add $rt,$zero,$zero
+string assembleTypePseudo2(string line, int counter)
+{
+	string opCode, rd, rs, rt, shant, funct;
+	//identify both opcodes
+	
+	//identify registers
+	
+	//identify numbers if label check simbols table
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rd << rs << rt << shant << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+//Branch Unconditionally -> b Label = beq $zero,$zero, Label
+string assembleTypePseudo3(string line, int counter)
+{
+	string opCode, rd, rs, rt, shant, funct;
+	//identify both opcodes
+	
+	//identify registers
+	
+	//identify numbers if label check simbols table
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rd << rs << rt << shant << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+//Branch if greater than -> bgt $rs,$rt,Label = slt $at,$rt,$rs + bne $at,$zero,Label
+string assembleTypePseudo4(string line, int counter)
+{
+	string opCode, rd, rs, rt, shant, funct;
+	//identify both opcodes
+	
+	//identify registers
+	
+	//identify numbers if label check simbols table
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rd << rs << rt << shant << funct;
+	string functionCode = ss.str();
+	
+	//make translation to machine code
+	return functionCode;
+}
+
+//Branch if less than -> blt $rs,$rt,Label = slt $at,$rs,$rt + bne $at,$zero,Label
+//Branch if greater than or equal -> bge $rs,$rt,Label = slt $at,$rs,$rt + beq $at,$zero,Label
+string assembleTypePseudo5(string line, int counter)
 {
 	string opCode, rd, rs, rt, shant, funct;
 	//identify both opcodes
