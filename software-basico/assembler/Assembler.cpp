@@ -57,14 +57,18 @@ bool createSimbolsTable()
 	return true;
 }
 
-void findLabel(string line, int counter)
+bool findLabel(string line, int counter)
 {
+	if(line.size() == 0)
+		return false;
 	if(identifyToken(line))
 	{
 		LOG(LEVEL_WARN) << "Token Found";
 		LOG(LEVEL_INFO) << line;
 		LOG(LEVEL_INFO) << "Line number = " << counter;
 	}
+	
+	return true;
 }
 
 bool assemble()
@@ -137,6 +141,9 @@ bool assemble()
 				break;
 			case 12:
 				functionCode = assembleTypePseudo5(line, counter);
+				break;
+			case 13:
+				functionCode = SYSCALL_CODE;
 				break;
 		}
 		
