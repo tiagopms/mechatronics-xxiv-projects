@@ -13,7 +13,7 @@
 #include <string>
 #include <armadillo>
 
-#define INPUT_FILE		"input.txt"
+#define INPUT_FILE		"input2.txt"
 #define OUTPUT_FILE		"output.txt"
 
 #define NULL_REGISTER	"00000"
@@ -21,6 +21,7 @@
 #define AT_REGISTER		"00001"
 #define NULL_SHANT		"00000"
 #define ZERO_IMM		"0000000000000000"
+#define SYSCALL_CODE	"000000-00000-00000-00000-00000-001100---------"
 
 using namespace std;
 
@@ -30,7 +31,7 @@ void binary(int number);
 
 void createTables();
 bool createSimbolsTable();
-void findLabel(string line, int counter);
+bool findLabel(string line, int counter);
 
 bool assemble();
 int reconizeType(string line);

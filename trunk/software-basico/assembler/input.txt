@@ -45,8 +45,7 @@ syscall
 add $v0, $zero, 4
 la $a0, text2
 syscall
-lado2show:
-add $v0, $zero, 1
+lado2show: add $v0, $zero, 1
 lw $a0, -12($s3)
 syscall
 add $v0, $zero, 4
