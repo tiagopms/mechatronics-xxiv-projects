@@ -7,19 +7,18 @@ bool identifyToken(string token)
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
 	regex labelHeader("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*:");
 	cmatch result;
-	string token;
 	
 	if(regex_match(token.begin(), token.end(), instruction))
 	{
 		LOG(LEVEL_INFO) << "It is instruction";
-		regex_search(instruction.c_str(), result, instructionHeader);
+		regex_search(token.c_str(), result, instructionHeader);
 		token = instruction.substr (result.position(),result.length());
 		return false;
 	}
 	if(regex_match(token.begin(), token.end(), label))
 	{
 		LOG(LEVEL_INFO) << "It is label";
-		regex_search(instruction.c_str(), result, labelHeader);
+		regex_search(token.c_str(), result, labelHeader);
 		token = instruction.substr (result.position(),result.length());
 		return true;
 	}
@@ -28,7 +27,7 @@ bool identifyToken(string token)
 	return false;
 }
 
-void identifyTypeR1(string instruction)
+pair<bool, vector<string> > identifyTypeR1(string instruction)
 {
 	regex correct("[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero))");
 	regex correctInstruction("[a-z]+");
@@ -37,7 +36,7 @@ void identifyTypeR1(string instruction)
 	regex correctParameter3("\\$(:?(:?.{2})|(:?zero))");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
-	pair<bool, vector<string>> results;
+	pair<bool, vector<string> > results;
 	results.second = tokens;
 	cmatch result;
 	int i = 0;
@@ -67,7 +66,7 @@ void identifyTypeR1(string instruction)
 	return tokens;
 }
 
-pair<bool, vector<string>> identifyTypeR2(string instruction)
+pair<bool, vector<string> > identifyTypeR2(string instruction)
 {
 	regex correct("[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),[0-9]+");
 	regex correctInstruction("[a-z]+");
@@ -76,7 +75,7 @@ pair<bool, vector<string>> identifyTypeR2(string instruction)
 	regex correctImidiate("[0-9]+");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
-	pair<bool, vector<string>> results;
+	pair<bool, vector<string> > results;
 	results.second = tokens;
 	cmatch result;
 	int i = 0;
