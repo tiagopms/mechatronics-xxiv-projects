@@ -62,11 +62,13 @@ pair<bool, vector<string> > identifyTypeR1(string instruction)
 			i++;
 		}
 		//LOG(LEVEL_INFO) << "It is correct, R2";
-		return tokens;
+		results.second = tokens;
+		return results;
 	}
 	//LOG(LEVEL_ERROR) << "Error sintatic error R2";
 	results.first = 0;
-	return tokens;
+	results.second = tokens;
+	return results;
 }
 
 pair<bool, vector<string> > identifyTypeR2(string instruction)
