@@ -293,6 +293,8 @@ pair<bool, vector<string> > identifyTypeI2(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
+		tokens[3] = tokens[3].substr (2,tokens[3].length()-3);
+		tokens[3].insert(0,"$");
 		LOG(LEVEL_INFO) << "I2 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
