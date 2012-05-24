@@ -14,16 +14,22 @@ syscall
 clear $t4
 labelClear: clear $zero
 label9: j lado25show
-j ladoshow
-add.d $f7,$f3,$f2
-add.i $f7,$f3,$f2
+j lado25show
 label99: add.d $f1,$f9,$f2
-label12: add.i $f31,$f7,$f0
-j 1435
-jal 150969
+label12: add.s $f31,$f7,$f0
+add.d $f7,$f3,$f2
+add.s $f7,$f23,$f2
+b label9
+b LabelMove
+bgt $s2,$t3,label
+bge $t5,$s2,lado25show
+blt $s7,$t3,label2
 jal label
+j label
 add $v0,$zero,$s4
 syscall
+lw $a0,16($s3)
+labelNova: lw $a2,58($zero)
 move $zero,$zero
-labelMove: move $t5,$zero
+LabelMove: move $t5,$zero
 lado25show: add $v0,$zero,$s1

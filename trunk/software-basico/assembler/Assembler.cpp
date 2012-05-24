@@ -29,6 +29,7 @@ int main()
 	token = "jr $rs";
 	identifyTypeR3(token);
 */
+	
 	return 0;
 }
 
@@ -44,7 +45,8 @@ void createTables()
 
 bool createSimbolsTable()
 {
-	int counter = 0;
+	int counter1 = 0;
+	int counter2 = 0;
 	string line;
 	string filename = INPUT_FILE;
 	
@@ -53,15 +55,18 @@ bool createSimbolsTable()
 	if(cfg.fail())
 		errorSignal(101, 0);
 	
+	LOG(LEVEL_WARN) << "Labels Found:";
+	
 	//loop to go in each line
 	while(cfg.good())
 	{
-		counter++;
+		counter1++;
+		counter2++;
 		//get single line
 		getline(cfg, line);
 		
 		//updates simbols table
-		findLabel(line, counter);
+		findLabel(line, counter1, &counter2);
 	}
 	
 	//close file
@@ -70,24 +75,56 @@ bool createSimbolsTable()
 	return true;
 }
 
-bool findLabel(string line, int counter)
+bool findLabel(string line, int counter1, int *counter2)
 {
 	if(line.size() == 0)
 		return false;
 		
+	pair<bool, vector<string> > token = identifyFunction(line);
+	string instruction;
+	if (token.first == true)
+	{
+		instruction = token.second[0];
+	}
+	else
+	{
+		errorSignal(18, counter1);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return 0;//instruction = getInstructionToken();
+	}
+	
+	if(instructionTable[instruction].size() == 0)
+	{
+		errorSignal(14, counter1);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return 0;
+	}
+	
+	string typeString = instructionTable[instruction][0];
+
+	if (typeString[0] == 'P' && (0+typeString[1]-48)>3)
+	{
+		(*counter2)++;
+	}
+	
+	
 	pair <int, string> label = identifyToken(line);
 	
 	if(label.first == 2)
 	{
 		if(simbolTable[label.second])
 		{
-			errorSignal(17, counter);
+			errorSignal(17, counter1);
 			LOG(LEVEL_INFO) << label.second << " already defined";
 			return false;
 		}
-		LOG(LEVEL_WARN) << "Label Found";
-		LOG(LEVEL_INFO) << label.second << " Found in line number = " << counter;
-		simbolTable[label.second] = counter;
+		LOG(LEVEL_INFO) << "\t" << label.second << "\t\tFound in line number = " << *counter2;
+		simbolTable[label.second] = *counter2;
+	}
+	if(label.first == 0)
+	{
+			errorSignal(25, counter1);
+			return false;
 	}
 	
 	return true;
@@ -109,6 +146,8 @@ bool assemble()
 	if(!output.is_open())
 		errorSignal(103, 0);
 
+	LOG(LEVEL_WARN) << "Instructions Found";
+	
 	//loop to go in each line
 	while(cfg.good())
 	{
@@ -124,6 +163,9 @@ bool assemble()
 		
 		switch(type)
 		{
+			case 0:
+				functionCode = "Error";
+				break;
 			case 1:
 				functionCode = assembleTypeR1(line, counter);
 				break;
@@ -166,8 +208,21 @@ bool assemble()
 			case 14:
 				functionCode = SYSCALL_CODE;
 				break;
+			case 30:
+				return true;
 		}
 		
+		if(functionCode.size() > 32)
+		{
+			string function1, function2;
+			function1 = functionCode.substr(0,32);
+			function2 = functionCode.substr(33,functionCode.length());
+			LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << function1 << left << setw(79) << "\n" << left << setw(30) << function2 << "\t\tLine number = " << counter;
+		}
+		else
+		{
+			LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << functionCode << setw(10) << "\t\tLine number = " << counter;
+		}
 //		LOG(LEVEL_INFO) << "Line code = " << functionCode;
 		
 		output << functionCode << "\n";
@@ -182,6 +237,9 @@ bool assemble()
 
 int reconizeType(string line, int counter)
 {
+	if(line.size() == 0)
+		return 30;
+	
 	string instruction;
 	string typeString;
 	int type = 0;
@@ -189,16 +247,27 @@ int reconizeType(string line, int counter)
 	if(line.size() == 0)
 		return 0;
 	
-	pair<int, string> token = identifyToken(line);
-	if (token.first == 1)
+	pair<bool, vector<string> > token = identifyFunction(line);
+	if (token.first == true)
 	{
-		instruction = token.second;
-		if(instruction != "syscall")
-			instruction = instruction.substr(0, instruction.length() - 1);
+		instruction = token.second[0];
 	}
 	else
-		instruction = "add";//instruction = getInstructionToken();
-
+	{
+		errorSignal(18, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return 0;;//instruction = getInstructionToken();
+	}
+	
+//	LOG(LEVEL_INFO) << "\t" << instruction << "\t\tFound in line number = " << counter;
+	
+	if(instructionTable[instruction].size() == 0)
+	{
+		errorSignal(14, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return 0;
+	}
+	
 	typeString = instructionTable[instruction][0];
 
 	if (typeString[0] == 'R')
@@ -215,13 +284,13 @@ int reconizeType(string line, int counter)
 		{
 			if (typeString[0] == 'J')
 			{
-				type = 6+typeString[1]-48;
+				type = 7;
 			}
 			else
 			{
 				if (typeString[0] == 'F')
 				{
-					type = 7+typeString[1]-48;
+					type = 8;
 				}
 				else
 				{
@@ -241,6 +310,8 @@ int reconizeType(string line, int counter)
 		}
 	}
 	
+	LOG(LEVEL_DEBUG) << "Tipo de Funcao = " << typeString;
+	LOG(LEVEL_DEBUG) << "Tipo de Funcao = " << type;
 		
 	//if not found send error signal
 	if(type == 0)
@@ -553,13 +624,21 @@ string assembleTypeJ(string line, int counter)
 	function = parameters[0];
 	//identify opcode
 	opCode = instructionTable[function][1];
-		
+	
 	//identify number if label check simbols table
 	label = parameters[1];
 	imm = simbolTable[label];
+	
+	if(imm == 0)
+	{
+		errorSignal(13, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
 	//if number, transforms string decimal in string binary
 	my_itoa(imm, immCode, 2, 26, counter);
-	
+		
 	//concatenate strings
 	stringstream ss;
 	ss << opCode << immCode;
@@ -711,17 +790,39 @@ string assembleTypePseudo2(string line, int counter)
 string assembleTypePseudo3(string line, int counter)
 {
 	string opCode, immCode;
-	string function, imm;
+	string function, label;
+	int imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo3(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "b";
+	function = parameters[0];
 	//identify opcode
 	opCode = instructionTable[function][1];
 	
 	//identify number if label check simbols table
-	imm = "3";
+	label = parameters[1];
+	imm = simbolTable[label];
+	
+	if(imm == 0)
+	{
+		errorSignal(13, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	my_itoa(imm, immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -736,18 +837,31 @@ string assembleTypePseudo3(string line, int counter)
 string assembleTypePseudo4(string line, int counter)
 {
 	string opCode1, rsCode, rtCode, funct, opCode2, immCode;
-	string function, rs, rt, imm;
+	string function, rs, rt, label;
+	int imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo4(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "bgt";
+	function = parameters[0];
 	//identify opcode
 	opCode1 = instructionTable[function][1];
 	funct = instructionTable[function][2];
 	opCode2 = instructionTable[function][3];
 	
 	//identify registers
-	rs = "$t2";
-	rt = "$t5";
+	rs = parameters[1];
+	rt = parameters[2];
 	//get register codes
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
@@ -756,9 +870,18 @@ string assembleTypePseudo4(string line, int counter)
 	checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
-	imm = "3";
+	label = parameters[3];
+	imm = simbolTable[label];
+	
+	if(imm == 0)
+	{
+		errorSignal(13, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	my_itoa(imm, immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -774,18 +897,31 @@ string assembleTypePseudo4(string line, int counter)
 string assembleTypePseudo5(string line, int counter)
 {
 	string opCode1, rsCode, rtCode, funct, opCode2, immCode;
-	string function, rs, rt, imm;
+	string function, rs, rt, label;
+	int imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo5(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "blt";
+	function = parameters[0];
 	//identify opcode
 	opCode1 = instructionTable[function][1];
 	funct = instructionTable[function][2];
 	opCode2 = instructionTable[function][3];
 	
 	//identify registers
-	rs = "$t2";
-	rt = "$t5";
+	rs = parameters[1];
+	rt = parameters[2];
 	//get register codes
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
@@ -794,9 +930,18 @@ string assembleTypePseudo5(string line, int counter)
 	checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
-	imm = "3";
+	label = parameters[3];
+	imm = simbolTable[label];
+	
+	if(imm == 0)
+	{
+		errorSignal(13, counter);
+		LOG(LEVEL_ERROR) << "Line = " << line;
+		return "Error";
+	}
+	
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	my_itoa(imm, immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -888,11 +1033,23 @@ void errorSignal(int errorCode, int line)
 		case 10:
 			LOG(LEVEL_INFO) << "Can't convert negative number to binary";
 		break;
+		case 13:
+			LOG(LEVEL_INFO) << "Trying to access non declared label";
+		break;
+		case 14:
+			LOG(LEVEL_INFO) << "Trying to access non existent function";
+		break;
 		case 15:
 			LOG(LEVEL_INFO) << "Trying to access non existent register";
 		break;
 		case 17:
 			LOG(LEVEL_INFO) << "Label registered twice";
+		break;
+		case 18:
+			LOG(LEVEL_INFO) << "Didn't detect line";
+		break;
+		case 25:
+			LOG(LEVEL_INFO) << "First token of line isn't label or instruction";
 		break;
 		case 101:
 			LOG(LEVEL_INFO) << "Unable to open file " << INPUT_FILE;

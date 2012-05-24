@@ -17,7 +17,7 @@ pair<int, string>  identifyToken(string token)
 		regex_search(token.c_str(), result, instructionHeader);
 		token = token.substr (result.position(),result.length());
 		results.second = token;
-		LOG(LEVEL_INFO) << "It is instruction " << token;
+		LOG(LEVEL_DEBUG) << "It is instruction " << token;
 		return results;
 	}
 	if(regex_match(token.begin(), token.end(), label))
@@ -25,11 +25,11 @@ pair<int, string>  identifyToken(string token)
 		results.first = 2;
 		regex_search(token.c_str(), result, labelHeader);
 		token = token.substr (result.position(),result.length()-1);
-		LOG(LEVEL_INFO) << "It is label " << token;
+		LOG(LEVEL_DEBUG) << "It is label " << token;
 		results.second = token;
 		return results;
 	}
-	LOG(LEVEL_ERROR) << "Error token doesn't exist";
+//	LOG(LEVEL_ERROR) << "Error token doesn't exist";
 	results.first = 0;
 	results.second = token;
 	LOG(LEVEL_ERROR) << token;
@@ -66,12 +66,13 @@ pair<bool, vector<string> > identifyFunction(string instruction)
 			i++;
 		}
 		//LOG(LEVEL_INFO) << "It is correct, R2";
-		LOG(LEVEL_INFO) << "Function token " << tokens[0];
+		LOG(LEVEL_DEBUG) << "Function token " << tokens[0];
+		results.first = true;
 		results.second = tokens;
 		return results;
 	}
-	LOG(LEVEL_ERROR) << "Error sintatic error function";
-	results.first = 0;
+//	LOG(LEVEL_ERROR) << "Error sintatic error function";
+	results.first = false;
 	results.second = tokens;
 	return results;
 }
@@ -113,7 +114,7 @@ pair<bool, vector<string> > identifyTypeR1(string instruction)
 			i++;
 		}
 		//LOG(LEVEL_INFO) << "It is correct, R2";
-		LOG(LEVEL_INFO) << "R1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		LOG(LEVEL_DEBUG) << "R1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
@@ -159,7 +160,7 @@ pair<bool, vector<string> > identifyTypeR2(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "R2 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		LOG(LEVEL_DEBUG) << "R2 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
@@ -201,7 +202,7 @@ pair<bool, vector<string> > identifyTypeR3(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "R3 tokens " << tokens[0] << ", " << tokens[1];
+		LOG(LEVEL_DEBUG) << "R3 tokens " << tokens[0] << ", " << tokens[1];
 		results.second = tokens;
 		return results;
 	}
@@ -247,11 +248,11 @@ pair<bool, vector<string> > identifyTypeI1(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "I1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		LOG(LEVEL_DEBUG) << "I1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
-	LOG(LEVEL_ERROR) << "Error sintatic error I1";
+//	LOG(LEVEL_ERROR) << "Error sintatic error I1";
 	results.first = 0;
 	results.second = tokens;
 	return results;
@@ -295,11 +296,11 @@ pair<bool, vector<string> > identifyTypeI2(string instruction)
 		}
 		tokens[3] = tokens[3].substr (2,tokens[3].length()-3);
 		tokens[3].insert(0,"$");
-		LOG(LEVEL_INFO) << "I2 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		LOG(LEVEL_DEBUG) << "I2 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
-	LOG(LEVEL_ERROR) << "Error sintatic error I2";
+//	LOG(LEVEL_ERROR) << "Error sintatic error I2";
 	results.first = 0;
 	results.second = tokens;
 	return results;
@@ -338,11 +339,11 @@ pair<bool, vector<string> > identifyTypeI3(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "I3 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2];
+		LOG(LEVEL_DEBUG) << "I3 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2];
 		results.second = tokens;
 		return results;
 	}
-	LOG(LEVEL_ERROR) << "Error sintatic error I3";
+//	LOG(LEVEL_ERROR) << "Error sintatic error I3";
 	results.first = 0;
 	results.second = tokens;
 	return results;
@@ -379,11 +380,11 @@ pair<bool, vector<string> > identifyTypeJ(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "J tokens " << tokens[0] << ", " << tokens[1];
+		LOG(LEVEL_DEBUG) << "J tokens " << tokens[0] << ", " << tokens[1];
 		results.second = tokens;
 		return results;
 	}
-	LOG(LEVEL_ERROR) << "Error sintatic error J";
+//	LOG(LEVEL_ERROR) << "Error sintatic error J";
 	results.first = 0;
 	results.second = tokens;
 	return results;
@@ -426,7 +427,7 @@ pair<bool, vector<string> > identifyTypeFloat(string instruction)
 			i++;
 		}
 		//LOG(LEVEL_INFO) << "It is correct, R2";
-		LOG(LEVEL_INFO) << "Float tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		LOG(LEVEL_DEBUG) << "Float tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
@@ -470,7 +471,7 @@ pair<bool, vector<string> > identifyTypePseudo1(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "Pseudo1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2];
+		LOG(LEVEL_DEBUG) << "Pseudo1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2];
 		results.second = tokens;
 		return results;
 	}
@@ -512,7 +513,7 @@ pair<bool, vector<string> > identifyTypePseudo2(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "Pseudo2 tokens " << tokens[0] << ", " << tokens[1];
+		LOG(LEVEL_DEBUG) << "Pseudo2 tokens " << tokens[0] << ", " << tokens[1];
 		results.second = tokens;
 		return results;
 	}
@@ -553,11 +554,11 @@ pair<bool, vector<string> > identifyTypePseudo3(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		LOG(LEVEL_INFO) << "Pseudo3 tokens " << tokens[0] << ", " << tokens[1];
+		LOG(LEVEL_DEBUG) << "Pseudo3 tokens " << tokens[0] << ", " << tokens[1];
 		results.second = tokens;
 		return results;
 	}
-	LOG(LEVEL_ERROR) << "Error sintatic error J";
+//	LOG(LEVEL_ERROR) << "Error sintatic error J";
 	results.first = 0;
 	results.second = tokens;
 	return results;
@@ -569,7 +570,7 @@ pair<bool, vector<string> > identifyTypePseudo4(string instruction)
 	regex correctInstruction("[a-z]+");
 	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
 	regex correctParameter2("\\$(:?(:?zero)|(:?.{2}))");
-	regex correctParameter3("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*)?");
+	regex correctParameter3("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*)");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
@@ -600,7 +601,7 @@ pair<bool, vector<string> > identifyTypePseudo4(string instruction)
 			i++;
 		}
 		//LOG(LEVEL_INFO) << "It is correct, R2";
-		LOG(LEVEL_INFO) << "Pseudo4 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		LOG(LEVEL_DEBUG) << "Pseudo4 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
@@ -616,7 +617,7 @@ pair<bool, vector<string> > identifyTypePseudo5(string instruction)
 	regex correctInstruction("[a-z]+");
 	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
 	regex correctParameter2("\\$(:?(:?zero)|(:?.{2}))");
-	regex correctParameter3("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*)?");
+	regex correctParameter3("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*)");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
@@ -646,12 +647,11 @@ pair<bool, vector<string> > identifyTypePseudo5(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		//LOG(LEVEL_INFO) << "It is correct, R2";
-		LOG(LEVEL_INFO) << "Pseudo5 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		LOG(LEVEL_DEBUG) << "Pseudo5 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
-	//LOG(LEVEL_ERROR) << "Error sintatic error R2";
+//	LOG(LEVEL_ERROR) << "Error sintatic error P5";
 	results.first = 0;
 	results.second = tokens;
 	return results;
