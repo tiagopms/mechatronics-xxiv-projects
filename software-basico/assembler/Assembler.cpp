@@ -1,3 +1,6 @@
+//label
+//$zero
+
 #include <Assembler.hpp>
 
 map<string, vector<string> > instructionTable;
@@ -78,6 +81,7 @@ bool findLabel(string line, int counter)
 	{
 		LOG(LEVEL_WARN) << "Label Found";
 		LOG(LEVEL_INFO) << label.second << " Found in line number = " << counter;
+		simbolTable[label.second] = counter;
 	}
 	
 	return true;
@@ -176,10 +180,21 @@ int reconizeType(string line, int counter)
 	string typeString;
 	int type = 0;
 	
-	instruction = "addi";//instruction = getInstructionToken();
+	if(line.size() == 0)
+		return 0;
 	
+	pair<int, string> token = identifyToken(line);
+	if (token.first == 1)
+	{
+		instruction = token.second;
+		if(instruction != "syscall")
+			instruction = instruction.substr(0, instruction.length() - 1);
+	}
+	else
+		instruction = "add";//instruction = getInstructionToken();
+
 	typeString = instructionTable[instruction][0];
-	
+
 	if (typeString[0] == 'R')
 	{
 		type = 0+typeString[1]-48;
@@ -236,18 +251,30 @@ string assembleTypeR1(string line, int counter)
 {
 	string opCode, rsCode, rtCode, rdCode, funct;
 	string function, rd, rs, rt;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeR1(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		LOG(LEVEL_INFO) << "Line = " << line;
+		errorSignal(7, counter);
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "add";
+	function = parameters[0];
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
 	funct = instructionTable[function][2];
 	
 	//identify registers
-	rs = "$t2";
-	rt = "$t1";
-	rd = "$t0";
+	rs = parameters[2];
+	rt = parameters[3];
+	rd = parameters[1];
 	
 	//get register codes
 	rsCode = registerTable[rs];
@@ -273,19 +300,31 @@ string assembleTypeR2(string line, int counter)
 {
 	string opCode, rsCode, rdCode, shant, funct;
 	string function, rd, rs, imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeR2(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		LOG(LEVEL_INFO) << "Line = " << line;
+		errorSignal(7, counter);
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "sll";
-	imm = "5";
+	function = parameters[0];
+	imm = parameters[3];
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
-	my_itoa(atoi(imm.c_str()), shant, 2, 5);
+	my_itoa(atoi(imm.c_str()), shant, 2, 5, counter);
 	funct = instructionTable[function][2];
 	
 	//identify registers
-	rs = "$t2";
-	rd = "$t0";
+	rs = parameters[2];
+	rd = parameters[1];
 	
 	//get register codes
 	rsCode = registerTable[rs];
@@ -309,16 +348,28 @@ string assembleTypeR3(string line, int counter)
 {
 	string opCode, rsCode, funct;
 	string function, rs;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeR3(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		LOG(LEVEL_INFO) << "Line = " << line;
+		errorSignal(7, counter);
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "jr";
+	function = parameters[0];
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
 	funct = instructionTable[function][2];
 	
 	//identify registers
-	rs = "$t2";
+	rs = parameters[1];
 	
 	//get register codes
 	rsCode = registerTable[rs];
@@ -359,7 +410,7 @@ string assembleTypeI1(string line, int counter)
 	//identify number if label check simbols table
 	imm = "3";
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -380,7 +431,6 @@ string assembleTypeI2(string line, int counter)
 	function = "lw";
 	//identify opcode
 	opCode = instructionTable[function][1];
-	
 	//identify registers
 	rs = "$t2";
 	rt = "$t5";
@@ -394,18 +444,19 @@ string assembleTypeI2(string line, int counter)
 	//identify number if label check simbols table
 	imm = "55";
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rsCode << rtCode << imm;
+	ss << opCode << rsCode << rtCode << immCode;
+	
 	string functionCode = ss.str();
 	
 	//return machine code
 	return functionCode;
 }
 
-//loads and saves -> lui $rt,58
+//loads and saves -> lui $rt,58 --- lui $rt,Label
 string assembleTypeI3(string line, int counter)
 {
 	string opCode, rtCode, immCode;
@@ -426,11 +477,11 @@ string assembleTypeI3(string line, int counter)
 	//identify number if label check simbols table
 	imm = "55";
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << NULL_REGISTER << rtCode << imm;
+	ss << opCode << NULL_REGISTER << rtCode << immCode;
 	string functionCode = ss.str();
 	
 	//return machine code
@@ -451,7 +502,7 @@ string assembleTypeJ(string line, int counter)
 	//identify number if label check simbols table
 	imm = "1";
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 26);
+	my_itoa(atoi(imm.c_str()), immCode, 2, 26, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -578,7 +629,7 @@ string assembleTypePseudo3(string line, int counter)
 	//identify number if label check simbols table
 	imm = "3";
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -615,7 +666,7 @@ string assembleTypePseudo4(string line, int counter)
 	//identify number if label check simbols table
 	imm = "3";
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -653,7 +704,7 @@ string assembleTypePseudo5(string line, int counter)
 	//identify number if label check simbols table
 	imm = "3";
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -673,17 +724,31 @@ bool checkRegister(string registerCode, int counter)
 	return true;
 }
 
-void my_itoa(int value, std::string& buf, int base, unsigned int size)
+void my_itoa(int value, std::string& buf, int base, unsigned int size, int counter)
 {
-	int i = 30;
-	
-	buf = "";
-	
-	for(; value && i ; --i, value /= base) buf = "0123456789abcdef"[value % base] + buf;
-	
-	while(buf.size() < size)
+	if(value >= 0 && value < pow(2, size))
 	{
-		buf = "0" + buf;
+		int i = 30;
+		
+		buf = "";
+		
+		for(; value && i ; --i, value /= base) buf = "0123456789abcdef"[value % base] + buf;
+		
+		while(buf.size() < size)
+		{
+			buf = "0" + buf;
+		}
+	}
+	else
+	{
+		if (value<0 && value > -pow(2, size))
+		{
+			errorSignal(10, counter);
+		}
+		else
+		{
+			errorSignal(9, counter);
+		}
 	}
 }
 
@@ -724,6 +789,12 @@ void errorSignal(int errorCode, int line)
 		break;
 		case 8:
 			LOG(LEVEL_INFO) << "Error due to existence of extra parameters";
+		break;
+		case 9:
+			LOG(LEVEL_INFO) << "Trying to use to large number in immediate";
+		break;
+		case 10:
+			LOG(LEVEL_INFO) << "Can't convert negative number to binary";
 		break;
 		case 101:
 			LOG(LEVEL_INFO) << "Unable to open file " << INPUT_FILE;

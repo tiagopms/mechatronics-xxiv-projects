@@ -13,7 +13,7 @@
 #include <string>
 #include <armadillo>
 
-#define INPUT_FILE		"input.txt"
+#define INPUT_FILE		"input2.txt"
 #define OUTPUT_FILE		"output.txt"
 
 #define NULL_REGISTER	"00000"
@@ -26,7 +26,7 @@
 using namespace std;
 
 int main();
-void my_itoa(int value, std::string& buf, int base, unsigned int size);
+void my_itoa(int value, std::string& buf, int base, unsigned int size, int counter);
 void binary(int number);
 
 void createTables();
