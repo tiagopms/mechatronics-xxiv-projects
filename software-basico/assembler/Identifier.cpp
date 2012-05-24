@@ -6,7 +6,8 @@ bool identifyToken(string token)
 	regex instructionHeader("[a-z]+ ");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
 	regex labelHeader("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*:");
-	string token
+	cmatch result;
+	string token;
 	
 	if(regex_match(token.begin(), token.end(), instruction))
 	{
