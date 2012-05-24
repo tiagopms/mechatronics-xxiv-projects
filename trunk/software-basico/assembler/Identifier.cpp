@@ -32,24 +32,43 @@ void identifyTypeR1(string instruction)
 	return;
 }
 
-void identifyTypeR2(string instruction)
+pair<bool, vector<string>> identifyTypeR2(string instruction)
 {
 	regex correct("[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),[0-9]+");
 	regex correctInstruction("[a-z]+");
+	regex correctParameter1("\\$(:?(:?.{2})|(:?zero))");
+	regex correctParameter2("\\$(:?(:?.{2})|(:?zero))");
+	regex correctImidiate("[0-9]+");
+	vector<regex> rules (4);
 	vector<string> tokens (4);
+	pair<bool, vector<string>> results;
+	results.second = tokens;
 	cmatch result;
-	const string a = "add";
+	int i = 0;
+	
+	rules[0] = correctInstruction;
+	rules[1] = correctParameter1;
+	rules[2] = correctParameter2;
+	rules[3] = correctImidiate;
 	
 	if(regex_match(instruction.begin(), instruction.end(), correct))
 	{
-		//regex_search(instruction, result, correctInstruction); NÃO FUNCIONA
-		regex_search("add", result, correct);//FUNCIONA
-		//LOG(LEVEL_INFO) << "instruction str:" << result.str; //<< "' at "result.position <" with length: " << result.length;
-		LOG(LEVEL_INFO) << "It is correct, R2";
-		return;
+		results.first = 1;
+		while(i < 4)
+		{
+			regex_search(instruction.c_str(), result, rules[i]);
+			tokens[i] = instruction.substr (result.position(),result.length());
+			//LOG(LEVEL_INFO) << "token = " << tokens[i];
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+			//LOG(LEVEL_INFO) << "instruction" << instruction;
+			i++;
+		}
+		//LOG(LEVEL_INFO) << "It is correct, R2";
+		return tokens;
 	}
-	LOG(LEVEL_ERROR) << "Error sintatic error R2";
-	return;
+	//LOG(LEVEL_ERROR) << "Error sintatic error R2";
+	results.first = 0;
+	return tokens;
 }
 
 
