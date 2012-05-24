@@ -2,6 +2,7 @@
 
 map<string, vector<string> > instructionTable;
 map<string, string> registerTable;
+map<string, string> registerFloatTable;
 map<string, int> simbolTable;
 
 int main()
@@ -25,6 +26,7 @@ void createTables()
 	
 	//registers
 	registerTable = createRegisterTable();
+	registerFloatTable = createRegisterFloatTable();
 }
 
 bool createSimbolsTable()
@@ -153,7 +155,7 @@ bool assemble()
 int reconizeType(string line)
 {
 	
-	return 2;
+	return 7;
 }
 
 //normal type r functions -> add $rd,$rs,$rt
@@ -189,7 +191,7 @@ string assembleTypeR1(string line, int counter)
 	ss << opCode << rsCode << rtCode << rdCode << NULL_SHANT << funct;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
@@ -225,7 +227,7 @@ string assembleTypeR2(string line, int counter)
 	ss << opCode << rdCode << rsCode << NULL_REGISTER << shant << funct;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
@@ -256,7 +258,7 @@ string assembleTypeR3(string line, int counter)
 	ss << opCode << rsCode << NULL_REGISTER << NULL_REGISTER << NULL_SHANT << funct;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
@@ -279,8 +281,10 @@ string assembleTypeI1(string line, int counter)
 	rtCode = registerTable[rt];
 	//check if valid register
 	checkRegister(rsCode, counter);
+	checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
+	imm = "3";
 	//if number, transforms string decimal in string binary
 	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
 	
@@ -289,43 +293,67 @@ string assembleTypeI1(string line, int counter)
 	ss << opCode << rsCode << rtCode << immCode;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
 //loads and saves -> lw $rt,58($rs)
 string assembleTypeI2(string line, int counter)
 {
-	string opCode, rs, rt, imm;
+	string opCode, rsCode, rtCode, immCode;
+	string function, rs, rt, imm;
+	
+	//identify function
+	function = "lw";
 	//identify opcode
+	opCode = instructionTable[function][1];
 	
 	//identify registers
+	rs = "$t2";
+	rt = "$t5";
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	//check if valid register
+	checkRegister(rsCode, counter);
+	checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
+	imm = "55";
+	//if number, transforms string decimal in string binary
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
 	
 	//concatenate strings
 	stringstream ss;
 	ss << opCode << rs << rt << imm;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
 //jumps -> j Label or jal Label
 string assembleTypeJ(string line, int counter)
 {
-	string opCode, imm;
-	//identify opcode
+	string opCode, immCode;
+	string function, imm;
 	
+	//identify function
+	function = "j";
+	//identify opcode
+	opCode = instructionTable[function][1];
+		
 	//identify number if label check simbols table
+	imm = "1";
+	//if number, transforms string decimal in string binary
+	my_itoa(atoi(imm.c_str()), immCode, 2, 26);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << imm;
+	ss << opCode << immCode;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
@@ -335,95 +363,161 @@ string assembleTypeJ(string line, int counter)
 //this two have to be with register f
 string assembleTypeFloat(string line, int counter)
 {
-	string opCode, type, fs, ft, fd, funct;
-	//identify opcode
+	string opCode, type, fsCode, ftCode, fdCode, funct;
+	string function, fs, ft, fd;
+	
+	//identify function
+	function = "add.d";
+	
+	//identify opcode, shant and funct
+	opCode = instructionTable[function][1];
+	type = instructionTable[function][2];
+	funct = instructionTable[function][3];
 	
 	//identify registers
+	fs = "$f2";
+	ft = "$f1";
+	fd = "$f0";
 	
-	//identify number if label check simbols table
+	//get register codes
+	fsCode = registerFloatTable[fs];
+	ftCode = registerFloatTable[ft];
+	fdCode = registerFloatTable[fd];
+	
+	//check if valid registers
+	checkRegister(fsCode, counter);
+	checkRegister(ftCode, counter);
+	checkRegister(fdCode, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << type << fs << ft << fd << funct;
+	ss << opCode << type << fsCode << ftCode << fdCode << funct;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
 //move -> move $rt,$rs = addi $rt,$rs,0
 string assembleTypePseudo1(string line, int counter)
 {
-	string opCode, rd, rs, rt, shant, funct;
-	//identify both opcodes
+	string opCode, rsCode, rtCode;
+	string function, rs, rt;
+	
+	//identify function
+	function = "move";
+	//identify opcode
+	opCode = instructionTable[function][1];
 	
 	//identify registers
-	
-	//identify numbers if label check simbols table
+	rs = "$t2";
+	rt = "$t5";
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	//check if valid register
+	checkRegister(rsCode, counter);
+	checkRegister(rtCode, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rd << rs << rt << shant << funct;
+	ss << opCode << rsCode << rtCode << ZERO_IMM;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
 //clear -> clear $rt = add $rt,$zero,$zero
 string assembleTypePseudo2(string line, int counter)
 {
-	string opCode, rd, rs, rt, shant, funct;
-	//identify both opcodes
+	string opCode, rtCode, funct;
+	string function, rt;
+	
+	//identify function
+	function = "clear";
+	
+	//identify opcode, shant and funct
+	opCode = instructionTable[function][1];
+	funct = instructionTable[function][2];
 	
 	//identify registers
+	rt = "$t1";
 	
-	//identify numbers if label check simbols table
+	//get register codes
+	rtCode = registerTable[rt];
+	
+	//check if valid registers
+	checkRegister(rtCode, counter);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rd << rs << rt << shant << funct;
+	ss << opCode << ZERO_REGISTER << ZERO_REGISTER << rtCode << NULL_SHANT << funct;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
 //Branch Unconditionally -> b Label = beq $zero,$zero, Label
 string assembleTypePseudo3(string line, int counter)
 {
-	string opCode, rd, rs, rt, shant, funct;
-	//identify both opcodes
+	string opCode, immCode;
+	string function, imm;
 	
-	//identify registers
+	//identify function
+	function = "b";
+	//identify opcode
+	opCode = instructionTable[function][1];
 	
-	//identify numbers if label check simbols table
+	//identify number if label check simbols table
+	imm = "3";
+	//if number, transforms string decimal in string binary
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rd << rs << rt << shant << funct;
+	ss << opCode << ZERO_REGISTER << ZERO_REGISTER << immCode;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
 //Branch if greater than -> bgt $rs,$rt,Label = slt $at,$rt,$rs + bne $at,$zero,Label
 string assembleTypePseudo4(string line, int counter)
 {
-	string opCode, rd, rs, rt, shant, funct;
-	//identify both opcodes
+	string opCode1, rsCode, rtCode, funct, opCode2, immCode;
+	string function, rs, rt, imm;
+	
+	//identify function
+	function = "bgt";
+	//identify opcode
+	opCode1 = instructionTable[function][1];
+	funct = instructionTable[function][2];
+	opCode2 = instructionTable[function][3];
 	
 	//identify registers
+	rs = "$t2";
+	rt = "$t5";
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	//check if valid register
+	checkRegister(rsCode, counter);
+	checkRegister(rtCode, counter);
 	
-	//identify numbers if label check simbols table
+	//identify number if label check simbols table
+	imm = "3";
+	//if number, transforms string decimal in string binary
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rd << rs << rt << shant << funct;
+	ss << opCode1 << rtCode << rsCode << AT_REGISTER << NULL_SHANT << funct << "\n" << opCode2 << AT_REGISTER << ZERO_REGISTER << immCode;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 
@@ -431,19 +525,37 @@ string assembleTypePseudo4(string line, int counter)
 //Branch if greater than or equal -> bge $rs,$rt,Label = slt $at,$rs,$rt + beq $at,$zero,Label
 string assembleTypePseudo5(string line, int counter)
 {
-	string opCode, rd, rs, rt, shant, funct;
-	//identify both opcodes
+	string opCode1, rsCode, rtCode, funct, opCode2, immCode;
+	string function, rs, rt, imm;
+	
+	//identify function
+	function = "blt";
+	//identify opcode
+	opCode1 = instructionTable[function][1];
+	funct = instructionTable[function][2];
+	opCode2 = instructionTable[function][3];
 	
 	//identify registers
+	rs = "$t2";
+	rt = "$t5";
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	//check if valid register
+	checkRegister(rsCode, counter);
+	checkRegister(rtCode, counter);
 	
-	//identify numbers if label check simbols table
+	//identify number if label check simbols table
+	imm = "3";
+	//if number, transforms string decimal in string binary
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rd << rs << rt << shant << funct;
+	ss << opCode1 << rsCode << rtCode << AT_REGISTER << NULL_SHANT << funct << "\n" << opCode2 << AT_REGISTER << ZERO_REGISTER << immCode;
 	string functionCode = ss.str();
 	
-	//make translation to machine code
+	//return machine code
 	return functionCode;
 }
 

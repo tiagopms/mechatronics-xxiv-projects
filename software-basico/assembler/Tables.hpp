@@ -8,6 +8,7 @@
 
 #define INSTRUCTION_FILE "instruction.txt"
 #define REGISTER_FILE "register.txt"
+#define REGISTER_FLOAT_FILE "floatRegister.txt"
 
 using namespace std;
 
@@ -16,5 +17,8 @@ bool useLineInstruction(string line, map <string, vector<string> > *instructionT
 
 map<string, string> createRegisterTable();
 bool useLineRegister(string line, map <string, string > *registerTable);
+
+map<string, string> createRegisterFloatTable();
+bool useLineRegisterFloat(string line, map <string, string > *registerFloatTable);
 
 #endif

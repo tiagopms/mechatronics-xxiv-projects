@@ -17,7 +17,10 @@
 #define OUTPUT_FILE		"output.txt"
 
 #define NULL_REGISTER	"00000"
+#define ZERO_REGISTER	"00000"
+#define AT_REGISTER		"00001"
 #define NULL_SHANT		"00000"
+#define ZERO_IMM		"0000000000000000"
 
 using namespace std;
 
