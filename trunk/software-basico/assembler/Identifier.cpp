@@ -263,7 +263,7 @@ pair<bool, vector<string> > identifyTypeI2(string instruction)
 }
 
 pair<bool, vector<string> > identifyTypeI3(string instruction)
-{//"lui $rt,58"
+{
 	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero)),[0-9]+");
 	regex correctInstruction("[a-z]+");
 	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
@@ -300,6 +300,47 @@ pair<bool, vector<string> > identifyTypeI3(string instruction)
 		return results;
 	}
 	LOG(LEVEL_ERROR) << "Error sintatic error I3";
+	results.first = 0;
+	results.second = tokens;
+	return results;
+}
+
+pair<bool, vector<string> > identifyTypeJ(string instruction)
+{
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ (:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*)");
+	regex correctInstruction("[a-z]+");
+	regex correctParameter1("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*)");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
+	vector<regex> rules (2);
+	vector<string> tokens (2);
+	pair<bool, vector<string> > results;
+	results.second = tokens;
+	cmatch result;
+	int i = 0;
+	rules[0] = correctInstruction;
+	rules[1] = correctParameter1;
+	
+	if(regex_match(instruction.begin(), instruction.end(), correct))
+	{
+		if(regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
+		results.first = 1;
+		while(i < 2)
+		{
+			regex_search(instruction.c_str(), result, rules[i]);
+			tokens[i] = instruction.substr (result.position(),result.length());
+			//LOG(LEVEL_INFO) << "I2token = " << tokens[i];
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+			//LOG(LEVEL_INFO) << "instruction" << instruction;
+			i++;
+		}
+		LOG(LEVEL_INFO) << "J tokens " << tokens[0] << ", " << tokens[1];
+		results.second = tokens;
+		return results;
+	}
+	LOG(LEVEL_ERROR) << "Error sintatic error J";
 	results.first = 0;
 	results.second = tokens;
 	return results;
