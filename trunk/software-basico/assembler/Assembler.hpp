@@ -34,12 +34,13 @@ bool createSimbolsTable();
 bool findLabel(string line, int counter);
 
 bool assemble();
-int reconizeType(string line);
+int reconizeType(string line, int counter);
 string assembleTypeR1(string line, int counter);
 string assembleTypeR2(string line, int counter);
 string assembleTypeR3(string line, int counter);
 string assembleTypeI1(string line, int counter);
 string assembleTypeI2(string line, int counter);
+string assembleTypeI3(string line, int counter);
 string assembleTypeJ(string line, int counter);
 string assembleTypeFloat(string line, int counter);
 string assembleTypePseudo1(string line, int counter);

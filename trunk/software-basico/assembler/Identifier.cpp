@@ -2,6 +2,9 @@
 
 bool identifyToken(string token)
 {
+//	regex instruction("([a-z]+ .*)|(syscall)");
+//	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: [a-z]+.*");
+
 	regex instruction("[a-z]+ .*");
 	regex instructionHeader("[a-z]+ ");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
@@ -10,14 +13,14 @@ bool identifyToken(string token)
 	
 	if(regex_match(token.begin(), token.end(), instruction))
 	{
-		LOG(LEVEL_INFO) << "It is instruction";
+//		LOG(LEVEL_INFO) << "It is instruction";
 		regex_search(token.c_str(), result, instructionHeader);
 		token = instruction.substr (result.position(),result.length());
 		return false;
 	}
 	if(regex_match(token.begin(), token.end(), label))
 	{
-		LOG(LEVEL_INFO) << "It is label";
+//		LOG(LEVEL_INFO) << "It is label";
 		regex_search(token.c_str(), result, labelHeader);
 		token = instruction.substr (result.position(),result.length());
 		return true;
@@ -98,11 +101,13 @@ pair<bool, vector<string> > identifyTypeR2(string instruction)
 			i++;
 		}
 		//LOG(LEVEL_INFO) << "It is correct, R2";
-		return tokens;
+		results.second = tokens;
+		return results;
 	}
 	//LOG(LEVEL_ERROR) << "Error sintatic error R2";
 	results.first = 0;
-	return tokens;
+	results.second = tokens;
+	return results;
 }
 
 
