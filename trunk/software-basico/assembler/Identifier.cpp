@@ -5,7 +5,7 @@ pair<int, string>  identifyToken(string token)
 //	regex instruction("([a-z]+ .*)|(syscall)");
 //	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: [a-z]+.*");
 	pair<int, string> results;
-	regex instruction("([a-z]+ .*)");
+	regex instruction("([a-z]+ .*)|(syscall)");
 	regex instructionHeader("[a-z]+ ");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
 	regex labelHeader("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*:");
@@ -17,7 +17,7 @@ pair<int, string>  identifyToken(string token)
 		regex_search(token.c_str(), result, instructionHeader);
 		token = token.substr (result.position(),result.length());
 		results.second = token;
-		LOG(LEVEL_INFO) << "It is instruction " << token;
+//		LOG(LEVEL_INFO) << "It is instruction " << token;
 		return results;
 	}
 	if(regex_match(token.begin(), token.end(), label))
@@ -26,7 +26,7 @@ pair<int, string>  identifyToken(string token)
 //		LOG(LEVEL_INFO) << "It is label";
 		regex_search(token.c_str(), result, labelHeader);
 		token = token.substr (result.position(),result.length()-1);
-		LOG(LEVEL_INFO) << "It is label " << token;
+//		LOG(LEVEL_INFO) << "It is label " << token;
 		results.second = token;
 		return results;
 	}
