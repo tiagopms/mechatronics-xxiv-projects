@@ -77,7 +77,7 @@ map<string, string> createRegisterTable()
 		//add line to registers table
 		useLineRegister(line, &registerTable);
 	}
-
+	
 	//close file
 	cfg.close();
 	
