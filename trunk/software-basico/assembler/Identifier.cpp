@@ -42,8 +42,8 @@ void identifyTypeR2(string instruction)
 	
 	if(regex_match(instruction.begin(), instruction.end(), correct))
 	{
-		//regex_search(instruction, result, correctInstruction); FUNCIONA
-		regex_search("add", result, correct);//NÂO FUNCIONA
+		//regex_search(instruction, result, correctInstruction); NÃO FUNCIONA
+		regex_search("add", result, correct);//FUNCIONA
 		//LOG(LEVEL_INFO) << "instruction str:" << result.str; //<< "' at "result.position <" with length: " << result.length;
 		LOG(LEVEL_INFO) << "It is correct, R2";
 		return;
