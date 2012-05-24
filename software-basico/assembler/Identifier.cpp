@@ -5,7 +5,7 @@ pair<int, string>  identifyToken(string token)
 //	regex instruction("([a-z]+ .*)|(syscall)");
 //	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: [a-z]+.*");
 	pair<int, string> results;
-	regex instruction("([a-z]+ .*)|syscall");
+	regex instruction("([a-z]+ .*)");
 	regex instructionHeader("[a-z]+ ");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
 	regex labelHeader("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*:");
@@ -39,11 +39,12 @@ pair<int, string>  identifyToken(string token)
 
 pair<bool, vector<string> > identifyTypeR1(string instruction)
 {
-	regex correct("[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero))");
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero))");
 	regex correctInstruction("[a-z]+");
-	regex correctParameter1("\\$(:?(:?.{2})|(:?zero))");
-	regex correctParameter2("\\$(:?(:?.{2})|(:?zero))");
-	regex correctParameter3("\\$(:?(:?.{2})|(:?zero))");
+	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctParameter2("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctParameter3("\\$(:?(:?zero)|(:?.{2}))");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
 	pair<bool, vector<string> > results;
@@ -58,6 +59,10 @@ pair<bool, vector<string> > identifyTypeR1(string instruction)
 	
 	if(regex_match(instruction.begin(), instruction.end(), correct))
 	{
+		if (regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
 		results.first = 1;
 		while(i < 4)
 		{
@@ -81,11 +86,12 @@ pair<bool, vector<string> > identifyTypeR1(string instruction)
 
 pair<bool, vector<string> > identifyTypeR2(string instruction)
 {
-	regex correct("[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),[0-9]+");
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),[0-9]+");
 	regex correctInstruction("[a-z]+");
-	regex correctParameter1("\\$(:?(:?.{2})|(:?zero))");
-	regex correctParameter2("\\$(:?(:?.{2})|(:?zero))");
+	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctParameter2("\\$(:?(:?zero)|(:?.{2}))");
 	regex correctImidiate("[0-9]+");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
 	pair<bool, vector<string> > results;
@@ -100,6 +106,10 @@ pair<bool, vector<string> > identifyTypeR2(string instruction)
 	
 	if(regex_match(instruction.begin(), instruction.end(), correct))
 	{
+		if (regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
 		results.first = 1;
 		while(i < 4)
 		{
@@ -122,9 +132,10 @@ pair<bool, vector<string> > identifyTypeR2(string instruction)
 
 pair<bool, vector<string> > identifyTypeR3(string instruction)
 {
-	regex correct("[a-z]+ \\$(:?(:?.{2})|(:?zero))");
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero))");
 	regex correctInstruction("[a-z]+");
-	regex correctParameter1("\\$(:?(:?.{2})|(:?zero))");
+	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (2);
 	vector<string> tokens (2);
 	pair<bool, vector<string> > results;
@@ -137,6 +148,10 @@ pair<bool, vector<string> > identifyTypeR3(string instruction)
 	
 	if(regex_match(instruction.begin(), instruction.end(), correct))
 	{
+		if (regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
 		results.first = 1;
 		while(i < 2)
 		{
@@ -157,5 +172,135 @@ pair<bool, vector<string> > identifyTypeR3(string instruction)
 	return results;
 }
 
+pair<bool, vector<string> > identifyTypeI1(string instruction)
+{
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),[0-9]+");
+	regex correctInstruction("[a-z]+");
+	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctParameter2("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctImidiate("[0-9]+");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
+	vector<regex> rules (4);
+	vector<string> tokens (4);
+	pair<bool, vector<string> > results;
+	results.second = tokens;
+	cmatch result;
+	int i = 0;
+	
+	rules[0] = correctInstruction;
+	rules[1] = correctParameter1;
+	rules[2] = correctParameter2;
+	rules[3] = correctImidiate;
+	
+	if(regex_match(instruction.begin(), instruction.end(), correct))
+	{
+		if (regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
+		results.first = 1;
+		while(i < 4)
+		{
+			regex_search(instruction.c_str(), result, rules[i]);
+			tokens[i] = instruction.substr (result.position(),result.length());
+			//LOG(LEVEL_INFO) << "token = " << tokens[i];
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+			//LOG(LEVEL_INFO) << "instruction" << instruction;
+			i++;
+		}
+		LOG(LEVEL_INFO) << "I1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
+		results.second = tokens;
+		return results;
+	}
+	LOG(LEVEL_ERROR) << "Error sintatic error I1";
+	results.first = 0;
+	results.second = tokens;
+	return results;
+}
 
+pair<bool, vector<string> > identifyTypeI2(string instruction)
+{
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero)),[0-9]+\\(\\$(:?(:?.{2})|(:?zero))\\)");
+	regex correctInstruction("[a-z]+");
+	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctParameter2("[0-9]+\\(\\$(\\$(:?(:?zero)|(:?.{2})))\\)");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
+	vector<regex> rules (3);
+	vector<string> tokens (3);
+	pair<bool, vector<string> > results;
+	results.second = tokens;
+	cmatch result;
+	int i = 0;
+	rules[0] = correctInstruction;
+	rules[1] = correctParameter1;
+	rules[2] = correctParameter2;
+	
+	if(regex_match(instruction.begin(), instruction.end(), correct))
+	{
+		
+		if (regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
+		results.first = 1;
+		while(i < 3)
+		{
+			regex_search(instruction.c_str(), result, rules[i]);
+			tokens[i] = instruction.substr (result.position(),result.length());
+			//LOG(LEVEL_INFO) << "I2token = " << tokens[i];
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+			//LOG(LEVEL_INFO) << "instruction" << instruction;
+			i++;
+		}
+		LOG(LEVEL_INFO) << "I2 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2];
+		results.second = tokens;
+		return results;
+	}
+	LOG(LEVEL_ERROR) << "Error sintatic error I2";
+	results.first = 0;
+	results.second = tokens;
+	return results;
+}
 
+pair<bool, vector<string> > identifyTypeI3(string instruction)
+{//"lui $rt,58"
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero)),[0-9]+");
+	regex correctInstruction("[a-z]+");
+	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctParameter2("[0-9]+");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
+	vector<regex> rules (3);
+	vector<string> tokens (3);
+	pair<bool, vector<string> > results;
+	results.second = tokens;
+	cmatch result;
+	int i = 0;
+	rules[0] = correctInstruction;
+	rules[1] = correctParameter1;
+	rules[2] = correctParameter2;
+	
+	if(regex_match(instruction.begin(), instruction.end(), correct))
+	{
+		if(regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
+		results.first = 1;
+		while(i < 3)
+		{
+			regex_search(instruction.c_str(), result, rules[i]);
+			tokens[i] = instruction.substr (result.position(),result.length());
+			//LOG(LEVEL_INFO) << "I2token = " << tokens[i];
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+			//LOG(LEVEL_INFO) << "instruction" << instruction;
+			i++;
+		}
+		LOG(LEVEL_INFO) << "I3 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2];
+		results.second = tokens;
+		return results;
+	}
+	LOG(LEVEL_ERROR) << "Error sintatic error I3";
+	results.first = 0;
+	results.second = tokens;
+	return results;
+}

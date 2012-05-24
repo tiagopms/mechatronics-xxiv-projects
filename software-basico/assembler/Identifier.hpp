@@ -19,5 +19,9 @@ pair<bool, vector<string> > identifyTypeR1(string instruction);
 pair<bool, vector<string> > identifyTypeR2(string instruction);
 pair<bool, vector<string> > identifyTypeR3(string instruction);
 
+pair<bool, vector<string> > identifyTypeI1(string instruction);
+pair<bool, vector<string> > identifyTypeI2(string instruction);
+pair<bool, vector<string> > identifyTypeI3(string instruction);
+
 
 #endif
