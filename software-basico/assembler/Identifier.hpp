@@ -14,6 +14,7 @@ using namespace boost;
 using namespace std;
 
 pair<int, string> identifyToken(string token);
+pair<bool, vector<string> > identifyFunction(string instruction);
 
 pair<bool, vector<string> > identifyTypeR1(string instruction);
 pair<bool, vector<string> > identifyTypeR2(string instruction);
