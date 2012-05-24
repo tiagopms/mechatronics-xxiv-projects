@@ -25,5 +25,7 @@ pair<bool, vector<string> > identifyTypeI3(string instruction);
 
 pair<bool, vector<string> > identifyTypeJ(string instruction);
 
+pair<bool, vector<string> > identifyTypeFloat(string instruction);
+
 
 #endif
