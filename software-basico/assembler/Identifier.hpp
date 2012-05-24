@@ -32,6 +32,7 @@ pair<bool, vector<string> > identifyTypePseudo1(string instruction);
 pair<bool, vector<string> > identifyTypePseudo2(string instruction);
 pair<bool, vector<string> > identifyTypePseudo3(string instruction);
 pair<bool, vector<string> > identifyTypePseudo4(string instruction);
+pair<bool, vector<string> > identifyTypePseudo5(string instruction);
 
 
 #endif
