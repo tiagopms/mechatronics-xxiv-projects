@@ -109,5 +109,59 @@ bool useLineRegister(string line, map <string, string > *registerTable)
 	return true;
 }
 
+map<string, string> createRegisterFloatTable()
+{
+	//create register table
+	map<string, string> registerFloatTable;
+	
+	//open registers file
+	string filename = REGISTER_FLOAT_FILE;
+	ifstream cfg(filename.c_str(), ifstream::in);
+	if(cfg.fail())
+	{
+		LOG(LEVEL_FATAL) << "Error found - Error number " << 106;
+		LOG(LEVEL_INFO) << "Unable to open register file " << REGISTER_FLOAT_FILE;
+	}
+	
+	//loop to go in each line
+	string line;
+	while(cfg.good())
+	{
+		getline(cfg, line);
+		//add line to registers table
+		useLineRegisterFloat(line, &registerFloatTable);
+	}
+
+	//close file
+	cfg.close();
+	
+	return registerFloatTable;
+}
+
+bool useLineRegisterFloat(string line, map <string, string > *registerFloatTable)
+{
+	if((line[0] == '#') || (line.size() == 0))
+		return false;
+	
+	// construct a stream from the string
+	stringstream ss(line);
+	
+	// use stream iterators to copy the stream to the vector as whitespace separated strings
+	istream_iterator<string> it(ss);
+	istream_iterator<string> end;
+	vector<string> tokens(it, end);
+	
+	LOG(LEVEL_VERBOSE) << "tokens size: " << tokens.size();
+	
+	//uses first token as key and adds the other to the map
+	string key(tokens[0]);
+	(*registerFloatTable)[key] = tokens[1];
+	
+	LOG(LEVEL_VERBOSE) << "registerTable[ " << key
+					   << "] size: " << (*registerFloatTable)[key].size() << endl;
+	
+	return true;
+}
+
 
 
