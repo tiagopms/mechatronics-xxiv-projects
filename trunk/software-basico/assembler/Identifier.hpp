@@ -13,9 +13,9 @@
 using namespace boost;
 using namespace std;
 
-void identifyTypeR(string token);
-
 bool identifyToken(string token);
 
+void identifyTypeR1(string token);
+void identifyTypeR2(string token);
 
 #endif
