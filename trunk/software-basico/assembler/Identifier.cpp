@@ -1,10 +1,10 @@
 #include <Identifier.hpp>
 
-bool identifyToken(string token)
+pair<bool, string>  identifyToken(string token)
 {
 //	regex instruction("([a-z]+ .*)|(syscall)");
 //	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: [a-z]+.*");
-
+	pair<bool, string> results;
 	regex instruction("[a-z]+ .*");
 	regex instructionHeader("[a-z]+ ");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
@@ -13,21 +13,28 @@ bool identifyToken(string token)
 	
 	if(regex_match(token.begin(), token.end(), instruction))
 	{
-//		LOG(LEVEL_INFO) << "It is instruction";
+		results.first = 1;
 		regex_search(token.c_str(), result, instructionHeader);
-		token = instruction.substr (result.position(),result.length());
-		return false;
+		token = token.substr (result.position(),result.length());
+		results.second = token;
+		LOG(LEVEL_INFO) << "It is instruction " << token;
+		return results;
 	}
 	if(regex_match(token.begin(), token.end(), label))
 	{
+		results.first = 1;
 //		LOG(LEVEL_INFO) << "It is label";
 		regex_search(token.c_str(), result, labelHeader);
-		token = instruction.substr (result.position(),result.length());
-		return true;
+		token = token.substr (result.position(),result.length()-1);
+		LOG(LEVEL_INFO) << "It is label " << token;
+		results.second = token;
+		return results;
 	}
 	LOG(LEVEL_ERROR) << "Error token doesn't exist";
+	results.first = 0;
+	results.second = token;
 	LOG(LEVEL_ERROR) << token;
-	return false;
+	return results;
 }
 
 pair<bool, vector<string> > identifyTypeR1(string instruction)
@@ -62,6 +69,7 @@ pair<bool, vector<string> > identifyTypeR1(string instruction)
 			i++;
 		}
 		//LOG(LEVEL_INFO) << "It is correct, R2";
+		LOG(LEVEL_INFO) << "R1 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
@@ -102,7 +110,7 @@ pair<bool, vector<string> > identifyTypeR2(string instruction)
 			//LOG(LEVEL_INFO) << "instruction" << instruction;
 			i++;
 		}
-		//LOG(LEVEL_INFO) << "It is correct, R2";
+		LOG(LEVEL_INFO) << "R2 tokens " << tokens[0] << ", " << tokens[1] << ", " << tokens[2] << ", " << tokens[3];
 		results.second = tokens;
 		return results;
 	}
