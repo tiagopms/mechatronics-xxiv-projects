@@ -11,6 +11,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <iomanip>
 #include <armadillo>
 
 #define INPUT_FILE		"input2.txt"
@@ -31,7 +32,7 @@ void binary(int number);
 
 void createTables();
 bool createSimbolsTable();
-bool findLabel(string line, int counter);
+bool findLabel(string line, int counter1, int *counter2);
 
 bool assemble();
 int reconizeType(string line, int counter);
