@@ -7,14 +7,22 @@ map<string, int> simbolTable;
 
 int main()
 {
-	//create tables
+	/*//create tables
 	createTables();
 	
 	//create simbols table
 	createSimbolsTable();
 	
 	//assemble
-	assemble();
+	assemble();*/
+	string token = "add ";
+	identifyToken(token);
+	token = "label: askljdajks";
+	identifyToken(token);
+	token = "add $t0,$t0,$t0";
+	identifyTypeR1(token);
+	token = "sll $rd,$rs,12";
+	identifyTypeR2(token);
 	
 	return 0;
 }
@@ -61,7 +69,7 @@ bool findLabel(string line, int counter)
 {
 	if(line.size() == 0)
 		return false;
-	if(identifyToken(line))
+	if(identifyToken(line).first)
 	{
 		LOG(LEVEL_WARN) << "Token Found";
 		LOG(LEVEL_INFO) << line;
