@@ -13,7 +13,7 @@
 #include <string>
 #include <armadillo>
 
-#define INPUT_FILE		"input2.txt"
+#define INPUT_FILE		"input.txt"
 #define OUTPUT_FILE		"output.txt"
 
 #define NULL_REGISTER	"00000"
