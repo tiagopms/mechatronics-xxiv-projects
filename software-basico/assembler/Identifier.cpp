@@ -391,11 +391,11 @@ pair<bool, vector<string> > identifyTypeJ(string instruction)
 
 pair<bool, vector<string> > identifyTypeFloat(string instruction)
 {
-	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+\\.[a-z] \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero))");
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+\\.[a-z] \\$(:?(:?.{2,3})|(:?zero)),\\$(:?(:?.{2,3})|(:?zero)),\\$(:?(:?.{2,3})|(:?zero))");
 	regex correctInstruction("[a-z]+\\.[a-z]");
-	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
-	regex correctParameter2("\\$(:?(:?zero)|(:?.{2}))");
-	regex correctParameter3("\\$(:?(:?zero)|(:?.{2}))");
+	regex correctParameter1("\\$(:?(:?zero)|(:?[a-z]|[0-9]){2,3})");
+	regex correctParameter2("\\$(:?(:?zero)|(:?[a-z]|[0-9]){2,3})");
+	regex correctParameter3("\\$(:?(:?zero)|(:?[a-z]|[0-9]){2,3})");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
