@@ -38,8 +38,8 @@ pair<int, string>  identifyToken(string token)
 
 pair<bool, vector<string> > identifyFunction(string instruction)
 {
-	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?(:?(:?[a-z]+ .*)|(:?syscall))");
-	regex correctInstruction(":?((:?[a-z]+)|(:?syscall))");
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?(:?(:?[a-z]+(:?\\.[a-z])? .*)|(:?syscall))");
+	regex correctInstruction("(:?(:?[a-z]+(:?\\.[a-z])?)|(:?syscall))");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (1);
 	vector<string> tokens (1);
@@ -49,7 +49,6 @@ pair<bool, vector<string> > identifyFunction(string instruction)
 	int i = 0;
 	
 	rules[0] = correctInstruction;
-	
 	if(regex_match(instruction.begin(), instruction.end(), correct))
 	{
 		if (regex_search(instruction.c_str(), result, label))
