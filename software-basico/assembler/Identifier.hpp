@@ -15,7 +15,9 @@ using namespace std;
 
 pair<bool, string> identifyToken(string token);
 
-pair<bool, vector<string> > identifyTypeR1(string token);
-pair<bool, vector<string> > identifyTypeR2(string token);
+pair<bool, vector<string> > identifyTypeR1(string instruction);
+pair<bool, vector<string> > identifyTypeR2(string instruction);
+pair<bool, vector<string> > identifyTypeR3(string instruction);
+
 
 #endif

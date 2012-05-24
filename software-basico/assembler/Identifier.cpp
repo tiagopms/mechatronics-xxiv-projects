@@ -120,4 +120,42 @@ pair<bool, vector<string> > identifyTypeR2(string instruction)
 	return results;
 }
 
+pair<bool, vector<string> > identifyTypeR3(string instruction)
+{
+	regex correct("[a-z]+ \\$(:?(:?.{2})|(:?zero))");
+	regex correctInstruction("[a-z]+");
+	regex correctParameter1("\\$(:?(:?.{2})|(:?zero))");
+	vector<regex> rules (2);
+	vector<string> tokens (2);
+	pair<bool, vector<string> > results;
+	results.second = tokens;
+	cmatch result;
+	int i = 0;
+	
+	rules[0] = correctInstruction;
+	rules[1] = correctParameter1;
+	
+	if(regex_match(instruction.begin(), instruction.end(), correct))
+	{
+		results.first = 1;
+		while(i < 2)
+		{
+			regex_search(instruction.c_str(), result, rules[i]);
+			tokens[i] = instruction.substr (result.position(),result.length());
+			//LOG(LEVEL_INFO) << "token = " << tokens[i];
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+			//LOG(LEVEL_INFO) << "instruction" << instruction;
+			i++;
+		}
+		LOG(LEVEL_INFO) << "R3 tokens " << tokens[0] << ", " << tokens[1];
+		results.second = tokens;
+		return results;
+	}
+	//LOG(LEVEL_ERROR) << "Error sintatic error R2";
+	results.first = 0;
+	results.second = tokens;
+	return results;
+}
+
+
 

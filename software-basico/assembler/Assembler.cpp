@@ -23,7 +23,8 @@ int main()
 	identifyTypeR1(token);
 	token = "sll $rd,$rs,12";
 	identifyTypeR2(token);
-	
+	token = "jr $rs";
+	identifyTypeR3(token);
 	return 0;
 }
 
