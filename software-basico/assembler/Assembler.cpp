@@ -95,11 +95,7 @@ bool assemble()
 		getline(cfg, line);
 		
 		//reconize type of intruction
-		type = reconizeType(line);
-		
-		//if not found send error signal
-		if(type == 0)
-			errorSignal(2, counter);
+		type = reconizeType(line, counter);
 		
 		LOG(LEVEL_INFO) << "Line number = " << counter;
 		LOG(LEVEL_INFO) << line;
@@ -122,27 +118,30 @@ bool assemble()
 				functionCode = assembleTypeI2(line, counter);
 				break;
 			case 6:
-				functionCode = assembleTypeJ(line, counter);
+				functionCode = assembleTypeI3(line, counter);
 				break;
 			case 7:
-				functionCode = assembleTypeFloat(line, counter);
+				functionCode = assembleTypeJ(line, counter);
 				break;
 			case 8:
-				functionCode = assembleTypePseudo1(line, counter);
+				functionCode = assembleTypeFloat(line, counter);
 				break;
 			case 9:
-				functionCode = assembleTypePseudo2(line, counter);
+				functionCode = assembleTypePseudo1(line, counter);
 				break;
 			case 10:
-				functionCode = assembleTypePseudo3(line, counter);
+				functionCode = assembleTypePseudo2(line, counter);
 				break;
 			case 11:
-				functionCode = assembleTypePseudo4(line, counter);
+				functionCode = assembleTypePseudo3(line, counter);
 				break;
 			case 12:
-				functionCode = assembleTypePseudo5(line, counter);
+				functionCode = assembleTypePseudo4(line, counter);
 				break;
 			case 13:
+				functionCode = assembleTypePseudo5(line, counter);
+				break;
+			case 14:
 				functionCode = SYSCALL_CODE;
 				break;
 		}
@@ -159,10 +158,65 @@ bool assemble()
 	return true;
 }
 
-int reconizeType(string line)
+int reconizeType(string line, int counter)
 {
+	string instruction;
+	string typeString;
+	int type = 0;
 	
-	return 7;
+	instruction = "addi";//instruction = getInstructionToken();
+	
+	typeString = instructionTable[instruction][0];
+	
+	if (typeString[0] == 'R')
+	{
+		type = 0+typeString[1]-48;
+	}
+	else
+	{
+		if (typeString[0] == 'I')
+		{
+			type = 3+typeString[1]-48;
+		}
+		else
+		{
+			if (typeString[0] == 'J')
+			{
+				type = 6+typeString[1]-48;
+			}
+			else
+			{
+				if (typeString[0] == 'F')
+				{
+					type = 7+typeString[1]-48;
+				}
+				else
+				{
+					if (typeString[0] == 'P')
+					{
+						type = 8+typeString[1]-48;
+					}
+					else
+					{
+						if (typeString[0] == 'S')
+						{
+							type = 14;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+		
+	//if not found send error signal
+	if(type == 0)
+		errorSignal(2, counter);
+	
+	LOG(LEVEL_WARN) << type;
+	
+	
+	return type;
 }
 
 //normal type r functions -> add $rd,$rs,$rt
@@ -332,7 +386,39 @@ string assembleTypeI2(string line, int counter)
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rs << rt << imm;
+	ss << opCode << rsCode << rtCode << imm;
+	string functionCode = ss.str();
+	
+	//return machine code
+	return functionCode;
+}
+
+//loads and saves -> lui $rt,58
+string assembleTypeI3(string line, int counter)
+{
+	string opCode, rtCode, immCode;
+	string function, rt, imm;
+	
+	//identify function
+	function = "lui";
+	//identify opcode
+	opCode = instructionTable[function][1];
+	
+	//identify registers
+	rt = "$t5";
+	//get register codes
+	rtCode = registerTable[rt];
+	//check if valid register
+	checkRegister(rtCode, counter);
+	
+	//identify number if label check simbols table
+	imm = "55";
+	//if number, transforms string decimal in string binary
+	my_itoa(atoi(imm.c_str()), immCode, 2, 16);
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << NULL_REGISTER << rtCode << imm;
 	string functionCode = ss.str();
 	
 	//return machine code
