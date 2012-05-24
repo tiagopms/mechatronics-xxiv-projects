@@ -36,6 +36,47 @@ pair<int, string>  identifyToken(string token)
 	return results;
 }
 
+pair<bool, vector<string> > identifyFunction(string instruction)
+{
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ .*");
+	regex correctInstruction("[a-z]+");
+	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
+	vector<regex> rules (1);
+	vector<string> tokens (1);
+	pair<bool, vector<string> > results;
+	results.second = tokens;
+	cmatch result;
+	int i = 0;
+	
+	rules[0] = correctInstruction;
+	
+	if(regex_match(instruction.begin(), instruction.end(), correct))
+	{
+		if (regex_search(instruction.c_str(), result, label))
+		{
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+		}
+		results.first = 1;
+		while(i < 1)
+		{
+			regex_search(instruction.c_str(), result, rules[i]);
+			tokens[i] = instruction.substr (result.position(),result.length());
+			//LOG(LEVEL_INFO) << "token = " << tokens[i];
+			instruction = instruction.substr (result.position() + result.length(), instruction.length() - (result.position() + result.length()));
+			//LOG(LEVEL_INFO) << "instruction" << instruction;
+			i++;
+		}
+		//LOG(LEVEL_INFO) << "It is correct, R2";
+		LOG(LEVEL_INFO) << "Function token " << tokens[0];
+		results.second = tokens;
+		return results;
+	}
+	LOG(LEVEL_ERROR) << "Error sintatic error function";
+	results.first = 0;
+	results.second = tokens;
+	return results;
+}
+
 pair<bool, vector<string> > identifyTypeR1(string instruction)
 {
 	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?[a-z]+ \\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero)),\\$(:?(:?.{2})|(:?zero))");
