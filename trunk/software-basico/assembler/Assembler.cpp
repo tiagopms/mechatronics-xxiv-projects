@@ -79,6 +79,12 @@ bool findLabel(string line, int counter)
 	
 	if(label.first == 2)
 	{
+		if(simbolTable[label.second])
+		{
+			errorSignal(17, counter);
+			LOG(LEVEL_INFO) << label.second << " already defined";
+			return false;
+		}
 		LOG(LEVEL_WARN) << "Label Found";
 		LOG(LEVEL_INFO) << label.second << " Found in line number = " << counter;
 		simbolTable[label.second] = counter;
@@ -391,15 +397,27 @@ string assembleTypeI1(string line, int counter)
 {
 	string opCode, rsCode, rtCode, immCode;
 	string function, rs, rt, imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeI1(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "addi";
+	function = parameters[0];
 	//identify opcode
 	opCode = instructionTable[function][1];
 	
 	//identify registers
-	rs = "$t2";
-	rt = "$t5";
+	rs = parameters[2];
+	rt = parameters[1];
 	//get register codes
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
@@ -408,7 +426,7 @@ string assembleTypeI1(string line, int counter)
 	checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
-	imm = "3";
+	imm = parameters[3];
 	//if number, transforms string decimal in string binary
 	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
@@ -426,14 +444,26 @@ string assembleTypeI2(string line, int counter)
 {
 	string opCode, rsCode, rtCode, immCode;
 	string function, rs, rt, imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeI2(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "lw";
+	function = parameters[0];
 	//identify opcode
 	opCode = instructionTable[function][1];
 	//identify registers
-	rs = "$t2";
-	rt = "$t5";
+	rs = parameters[1];
+	rt = parameters[3];
 	//get register codes
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
@@ -442,7 +472,7 @@ string assembleTypeI2(string line, int counter)
 	checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
-	imm = "55";
+	imm = parameters[2];
 	//if number, transforms string decimal in string binary
 	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
@@ -461,21 +491,33 @@ string assembleTypeI3(string line, int counter)
 {
 	string opCode, rtCode, immCode;
 	string function, rt, imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeI3(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "lui";
+	function = parameters[0];
 	//identify opcode
 	opCode = instructionTable[function][1];
 	
 	//identify registers
-	rt = "$t5";
+	rt = parameters[1];
 	//get register codes
 	rtCode = registerTable[rt];
 	//check if valid register
 	checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
-	imm = "55";
+	imm = parameters[2];
 	//if number, transforms string decimal in string binary
 	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
 	
@@ -492,17 +534,31 @@ string assembleTypeI3(string line, int counter)
 string assembleTypeJ(string line, int counter)
 {
 	string opCode, immCode;
-	string function, imm;
+	string function, label;
+	int imm;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeJ(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "j";
+	function = parameters[0];
 	//identify opcode
 	opCode = instructionTable[function][1];
 		
 	//identify number if label check simbols table
-	imm = "1";
+	label = parameters[1];
+	imm = simbolTable[label];
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 26, counter);
+	my_itoa(imm, immCode, 2, 26, counter);
 	
 	//concatenate strings
 	stringstream ss;
@@ -521,9 +577,21 @@ string assembleTypeFloat(string line, int counter)
 {
 	string opCode, type, fsCode, ftCode, fdCode, funct;
 	string function, fs, ft, fd;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeFloat(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "add.d";
+	function = parameters[0];
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
@@ -531,9 +599,9 @@ string assembleTypeFloat(string line, int counter)
 	funct = instructionTable[function][3];
 	
 	//identify registers
-	fs = "$f2";
-	ft = "$f1";
-	fd = "$f0";
+	fs = parameters[2];
+	ft = parameters[3];
+	fd = parameters[1];
 	
 	//get register codes
 	fsCode = registerFloatTable[fs];
@@ -559,15 +627,27 @@ string assembleTypePseudo1(string line, int counter)
 {
 	string opCode, rsCode, rtCode;
 	string function, rs, rt;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo1(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "move";
+	function = parameters[0];
 	//identify opcode
 	opCode = instructionTable[function][1];
 	
 	//identify registers
-	rs = "$t2";
-	rt = "$t5";
+	rs = parameters[2];
+	rt = parameters[1];
 	//get register codes
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
@@ -589,9 +669,21 @@ string assembleTypePseudo2(string line, int counter)
 {
 	string opCode, rtCode, funct;
 	string function, rt;
+	vector<string> parameters;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo2(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
 	
 	//identify function
-	function = "clear";
+	function = parameters[0];
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
@@ -795,6 +887,12 @@ void errorSignal(int errorCode, int line)
 		break;
 		case 10:
 			LOG(LEVEL_INFO) << "Can't convert negative number to binary";
+		break;
+		case 15:
+			LOG(LEVEL_INFO) << "Trying to access non existent register";
+		break;
+		case 17:
+			LOG(LEVEL_INFO) << "Label registered twice";
 		break;
 		case 101:
 			LOG(LEVEL_INFO) << "Unable to open file " << INPUT_FILE;
