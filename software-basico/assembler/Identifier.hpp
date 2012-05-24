@@ -27,5 +27,8 @@ pair<bool, vector<string> > identifyTypeJ(string instruction);
 
 pair<bool, vector<string> > identifyTypeFloat(string instruction);
 
+pair<bool, vector<string> > identifyTypePseudo1(string instruction);
+pair<bool, vector<string> > identifyTypePseudo2(string instruction);
+
 
 #endif
