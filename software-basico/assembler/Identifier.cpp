@@ -1,11 +1,11 @@
 #include <Identifier.hpp>
 
-pair<bool, string>  identifyToken(string token)
+pair<int, string>  identifyToken(string token)
 {
 //	regex instruction("([a-z]+ .*)|(syscall)");
 //	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: [a-z]+.*");
-	pair<bool, string> results;
-	regex instruction("[a-z]+ .*");
+	pair<int, string> results;
+	regex instruction("([a-z]+ .*)|syscall");
 	regex instructionHeader("[a-z]+ ");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
 	regex labelHeader("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*:");
@@ -22,7 +22,7 @@ pair<bool, string>  identifyToken(string token)
 	}
 	if(regex_match(token.begin(), token.end(), label))
 	{
-		results.first = 1;
+		results.first = 2;
 //		LOG(LEVEL_INFO) << "It is label";
 		regex_search(token.c_str(), result, labelHeader);
 		token = token.substr (result.position(),result.length()-1);

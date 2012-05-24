@@ -7,15 +7,15 @@ map<string, int> simbolTable;
 
 int main()
 {
-	/*//create tables
+	//create tables
 	createTables();
 	
 	//create simbols table
 	createSimbolsTable();
 	
 	//assemble
-	assemble();*/
-	string token = "add ";
+	assemble();
+/*	string token = "add ";
 	identifyToken(token);
 	token = "label: askljdajks";
 	identifyToken(token);
@@ -25,6 +25,7 @@ int main()
 	identifyTypeR2(token);
 	token = "jr $rs";
 	identifyTypeR3(token);
+*/
 	return 0;
 }
 
@@ -70,11 +71,13 @@ bool findLabel(string line, int counter)
 {
 	if(line.size() == 0)
 		return false;
-	if(identifyToken(line).first)
+		
+	pair <int, string> label = identifyToken(line);
+	
+	if(label.first == 2)
 	{
-		LOG(LEVEL_WARN) << "Token Found";
-		LOG(LEVEL_INFO) << line;
-		LOG(LEVEL_INFO) << "Line number = " << counter;
+		LOG(LEVEL_WARN) << "Label Found";
+		LOG(LEVEL_INFO) << label.second << " Found in line number = " << counter;
 	}
 	
 	return true;
@@ -106,8 +109,8 @@ bool assemble()
 		//reconize type of intruction
 		type = reconizeType(line, counter);
 		
-		LOG(LEVEL_INFO) << "Line number = " << counter;
-		LOG(LEVEL_INFO) << line;
+//		LOG(LEVEL_INFO) << "Line number = " << counter;
+//		LOG(LEVEL_INFO) << line;
 		
 		switch(type)
 		{
@@ -155,7 +158,7 @@ bool assemble()
 				break;
 		}
 		
-		LOG(LEVEL_INFO) << "Line code = " << functionCode;
+//		LOG(LEVEL_INFO) << "Line code = " << functionCode;
 		
 		output << functionCode << "\n";
 	}
@@ -222,7 +225,7 @@ int reconizeType(string line, int counter)
 	if(type == 0)
 		errorSignal(2, counter);
 	
-	LOG(LEVEL_WARN) << type;
+//	LOG(LEVEL_WARN) << type;
 	
 	
 	return type;
