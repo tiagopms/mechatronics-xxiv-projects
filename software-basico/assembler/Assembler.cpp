@@ -1,6 +1,3 @@
-//label
-//$zero
-
 #include <Assembler.hpp>
 
 map<string, vector<string> > instructionTable;
@@ -18,17 +15,6 @@ int main()
 	
 	//assemble
 	assemble();
-/*	string token = "add ";
-	identifyToken(token);
-	token = "label: askljdajks";
-	identifyToken(token);
-	token = "add $t0,$t0,$t0";
-	identifyTypeR1(token);
-	token = "sll $rd,$rs,12";
-	identifyTypeR2(token);
-	token = "jr $rs";
-	identifyTypeR3(token);
-*/
 	
 	return 0;
 }
@@ -118,7 +104,7 @@ bool findLabel(string line, int counter1, int *counter2)
 			LOG(LEVEL_INFO) << label.second << " already defined";
 			return false;
 		}
-		LOG(LEVEL_INFO) << "\t" << label.second << "\t\tFound in line number = " << *counter2;
+		LOG(LEVEL_INFO) << "\t" << left << setw(20) << label.second << "\tFound in line number = " << *counter2;
 		simbolTable[label.second] = *counter2;
 	}
 	if(label.first == 0)
@@ -132,7 +118,7 @@ bool findLabel(string line, int counter1, int *counter2)
 
 bool assemble()
 {
-	int type, counter = 0;
+	int type, counter = 0, counter2 = 0;
 	string line;
 	string functionCode;
 	string inputFilename = INPUT_FILE;
@@ -152,6 +138,7 @@ bool assemble()
 	while(cfg.good())
 	{
 		counter++;
+		counter2++;
 		//get single line
 		getline(cfg, line);
 		
@@ -185,43 +172,62 @@ bool assemble()
 				functionCode = assembleTypeI3(line, counter);
 				break;
 			case 7:
-				functionCode = assembleTypeJ(line, counter);
+				functionCode = assembleTypeI4(line, counter, counter2);
 				break;
 			case 8:
-				functionCode = assembleTypeFloat(line, counter);
+				functionCode = assembleTypeJ(line, counter);
 				break;
 			case 9:
-				functionCode = assembleTypePseudo1(line, counter);
+				functionCode = assembleTypeFloat(line, counter);
 				break;
 			case 10:
-				functionCode = assembleTypePseudo2(line, counter);
+				functionCode = assembleTypePseudo1(line, counter);
 				break;
 			case 11:
-				functionCode = assembleTypePseudo3(line, counter);
+				functionCode = assembleTypePseudo2(line, counter);
 				break;
 			case 12:
-				functionCode = assembleTypePseudo4(line, counter);
+				functionCode = assembleTypePseudo3(line, counter, counter2);
 				break;
 			case 13:
-				functionCode = assembleTypePseudo5(line, counter);
+				counter2++;
+				functionCode = assembleTypePseudo4(line, counter, counter2);
 				break;
 			case 14:
+				counter2++;
+				functionCode = assembleTypePseudo5(line, counter, counter2);
+				break;
+			case 15:
 				functionCode = SYSCALL_CODE;
 				break;
 			case 30:
 				return true;
 		}
 		
-		if(functionCode.size() > 32)
+		if(functionCode == "Error")
 		{
-			string function1, function2;
-			function1 = functionCode.substr(0,32);
-			function2 = functionCode.substr(33,functionCode.length());
-			LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << function1 << left << setw(79) << "\n" << left << setw(30) << function2 << "\t\tLine number = " << counter;
+			if(type == 13 || type == 14)
+			{
+				LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << functionCode << "\t\t\t\t\tAssemble line = " << counter2-1 << left << setw(79) << "\n" << left << setw(30) << functionCode << setw(10) << "\tLine = " << counter << "\tAssemble line = " << counter2;
+			}
+			else
+			{
+				LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << functionCode << setw(10) << "\t\t\tLine = " << counter << "\tAssemble line = " << counter2;
+			}
 		}
 		else
 		{
-			LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << functionCode << setw(10) << "\t\tLine number = " << counter;
+			if(functionCode.size() > 32)
+			{
+				string function1, function2;
+				function1 = functionCode.substr(0,32);
+				function2 = functionCode.substr(33,functionCode.length());
+				LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << function1 << "\t\t\tAssemble line = " << counter2-1 << left << setw(79) << "\n" << left << setw(30) << function2 << setw(10) << "\tLine = " << counter << "\tAssemble line = " << counter2;
+			}
+			else
+			{
+				LOG(LEVEL_INFO) << left << setw(30) << line << left << setw(10) << functionCode << setw(10) << "\tLine = " << counter << "\tAssemble line = " << counter2;
+			}
 		}
 //		LOG(LEVEL_INFO) << "Line code = " << functionCode;
 		
@@ -284,25 +290,25 @@ int reconizeType(string line, int counter)
 		{
 			if (typeString[0] == 'J')
 			{
-				type = 7;
+				type = 8;
 			}
 			else
 			{
 				if (typeString[0] == 'F')
 				{
-					type = 8;
+					type = 9;
 				}
 				else
 				{
 					if (typeString[0] == 'P')
 					{
-						type = 8+typeString[1]-48;
+						type = 9+typeString[1]-48;
 					}
 					else
 					{
 						if (typeString[0] == 'S')
 						{
-							type = 14;
+							type = 15;
 						}
 					}
 				}
@@ -329,6 +335,7 @@ string assembleTypeR1(string line, int counter)
 	string opCode, rsCode, rtCode, rdCode, funct;
 	string function, rd, rs, rt;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeR1(line);
 	
@@ -359,9 +366,15 @@ string assembleTypeR1(string line, int counter)
 	rdCode = registerTable[rd];
 	
 	//check if valid registers
-	checkRegister(rsCode, counter);
-	checkRegister(rtCode, counter);
-	checkRegister(rdCode, counter);
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rdCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -372,12 +385,13 @@ string assembleTypeR1(string line, int counter)
 	return functionCode;
 }
 
-//shift type r functions -> sll $rd,$rs,imm
+//shift type r functions -> sll $rd,$rt,imm
 string assembleTypeR2(string line, int counter)
 {
-	string opCode, rsCode, rdCode, shant, funct;
-	string function, rd, rs, imm;
+	string opCode, rtCode, rdCode, shant, funct;
+	string function, rd, rt, imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeR2(line);
 	
@@ -396,24 +410,30 @@ string assembleTypeR2(string line, int counter)
 	
 	//identify opcode, shant and funct
 	opCode = instructionTable[function][1];
-	my_itoa(atoi(imm.c_str()), shant, 2, 5, counter);
+	noErrors *= my_itoa(atoi(imm.c_str()), shant, 2, 5, counter);
 	funct = instructionTable[function][2];
 	
 	//identify registers
-	rs = parameters[2];
+	rt = parameters[2];
 	rd = parameters[1];
 	
 	//get register codes
-	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
 	rdCode = registerTable[rd];
 	
 	//check if valid registers
-	checkRegister(rsCode, counter);
-	checkRegister(rdCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rdCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rdCode << rsCode << NULL_REGISTER << shant << funct;
+	ss << opCode << NULL_REGISTER << rtCode << rdCode << shant << funct;
 	string functionCode = ss.str();
 	
 	//return machine code
@@ -426,6 +446,7 @@ string assembleTypeR3(string line, int counter)
 	string opCode, rsCode, funct;
 	string function, rs;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeR3(line);
 	
@@ -452,7 +473,13 @@ string assembleTypeR3(string line, int counter)
 	rsCode = registerTable[rs];
 	
 	//check if valid register
-	checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rsCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -469,6 +496,7 @@ string assembleTypeI1(string line, int counter)
 	string opCode, rsCode, rtCode, immCode;
 	string function, rs, rt, imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeI1(line);
 	
@@ -493,13 +521,19 @@ string assembleTypeI1(string line, int counter)
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
 	//check if valid register
-	checkRegister(rsCode, counter);
-	checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
 	imm = parameters[3];
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	noErrors *= my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -516,6 +550,7 @@ string assembleTypeI2(string line, int counter)
 	string opCode, rsCode, rtCode, immCode;
 	string function, rs, rt, imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeI2(line);
 	
@@ -533,19 +568,25 @@ string assembleTypeI2(string line, int counter)
 	//identify opcode
 	opCode = instructionTable[function][1];
 	//identify registers
-	rs = parameters[1];
-	rt = parameters[3];
+	rs = parameters[3];
+	rt = parameters[1];
 	//get register codes
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
 	//check if valid register
-	checkRegister(rsCode, counter);
-	checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
 	imm = parameters[2];
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	noErrors *= my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -563,6 +604,7 @@ string assembleTypeI3(string line, int counter)
 	string opCode, rtCode, immCode;
 	string function, rt, imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeI3(line);
 	
@@ -585,16 +627,86 @@ string assembleTypeI3(string line, int counter)
 	//get register codes
 	rtCode = registerTable[rt];
 	//check if valid register
-	checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
 	imm = parameters[2];
 	//if number, transforms string decimal in string binary
-	my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	noErrors *= my_itoa(atoi(imm.c_str()), immCode, 2, 16, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
 	ss << opCode << NULL_REGISTER << rtCode << immCode;
+	string functionCode = ss.str();
+	
+	//return machine code
+	return functionCode;
+}
+
+//branch instructions --> beq $rs,$rt,Label
+string assembleTypeI4(string line, int counter, int counter2)
+{
+	string opCode, rsCode, rtCode, immCode;
+	string function, rs, rt, label;
+	int imm;
+	vector<string> parameters;
+	bool noErrors = true;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo4(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		errorSignal(7, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
+	
+	//identify function
+	function = parameters[0];
+	//identify opcode
+	opCode = instructionTable[function][1];
+	
+	//identify registers
+	rs = parameters[1];
+	rt = parameters[2];
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	//check if valid register
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
+	
+	//identify number if label check simbols table
+	label = parameters[3];
+	imm = simbolTable[label]-counter2;
+	
+	if(simbolTable[label] == 0)
+	{
+		errorSignal(13, counter);
+		LOG(LEVEL_INFO) << "Line = " << line;
+		return "Error";
+	}
+	
+	//transforms decimal in string binary
+	noErrors *= my_itoa(imm, immCode, 2, 16, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rsCode << rtCode << immCode;
 	string functionCode = ss.str();
 	
 	//return machine code
@@ -608,6 +720,7 @@ string assembleTypeJ(string line, int counter)
 	string function, label;
 	int imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeJ(line);
 	
@@ -637,7 +750,13 @@ string assembleTypeJ(string line, int counter)
 	}
 	
 	//if number, transforms string decimal in string binary
-	my_itoa(imm, immCode, 2, 26, counter);
+	noErrors *= my_itoa(imm, immCode, 2, 26, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 		
 	//concatenate strings
 	stringstream ss;
@@ -657,6 +776,7 @@ string assembleTypeFloat(string line, int counter)
 	string opCode, type, fsCode, ftCode, fdCode, funct;
 	string function, fs, ft, fd;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypeFloat(line);
 	
@@ -688,13 +808,19 @@ string assembleTypeFloat(string line, int counter)
 	fdCode = registerFloatTable[fd];
 	
 	//check if valid registers
-	checkRegister(fsCode, counter);
-	checkRegister(ftCode, counter);
-	checkRegister(fdCode, counter);
+	noErrors *= checkRegister(fsCode, counter);
+	noErrors *= checkRegister(ftCode, counter);
+	noErrors *= checkRegister(fdCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << type << fsCode << ftCode << fdCode << funct;
+	ss << opCode << type << ftCode << fsCode << fdCode << funct;
 	string functionCode = ss.str();
 	
 	//return machine code
@@ -707,6 +833,7 @@ string assembleTypePseudo1(string line, int counter)
 	string opCode, rsCode, rtCode;
 	string function, rs, rt;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo1(line);
 	
@@ -731,8 +858,14 @@ string assembleTypePseudo1(string line, int counter)
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
 	//check if valid register
-	checkRegister(rsCode, counter);
-	checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -749,6 +882,7 @@ string assembleTypePseudo2(string line, int counter)
 	string opCode, rtCode, funct;
 	string function, rt;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo2(line);
 	
@@ -769,13 +903,19 @@ string assembleTypePseudo2(string line, int counter)
 	funct = instructionTable[function][2];
 	
 	//identify registers
-	rt = "$t1";
+	rt = parameters[1];
 	
 	//get register codes
 	rtCode = registerTable[rt];
 	
 	//check if valid registers
-	checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -787,12 +927,13 @@ string assembleTypePseudo2(string line, int counter)
 }
 
 //Branch Unconditionally -> b Label = beq $zero,$zero, Label
-string assembleTypePseudo3(string line, int counter)
+string assembleTypePseudo3(string line, int counter, int counter2)
 {
 	string opCode, immCode;
 	string function, label;
 	int imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo3(line);
 	
@@ -812,9 +953,9 @@ string assembleTypePseudo3(string line, int counter)
 	
 	//identify number if label check simbols table
 	label = parameters[1];
-	imm = simbolTable[label];
+	imm = simbolTable[label]-counter2;
 	
-	if(imm == 0)
+	if(simbolTable[label] == 0)
 	{
 		errorSignal(13, counter);
 		LOG(LEVEL_INFO) << "Line = " << line;
@@ -822,7 +963,13 @@ string assembleTypePseudo3(string line, int counter)
 	}
 	
 	//if number, transforms string decimal in string binary
-	my_itoa(imm, immCode, 2, 16, counter);
+	noErrors *= my_itoa(imm, immCode, 2, 16, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -834,12 +981,13 @@ string assembleTypePseudo3(string line, int counter)
 }
 
 //Branch if greater than -> bgt $rs,$rt,Label = slt $at,$rt,$rs + bne $at,$zero,Label
-string assembleTypePseudo4(string line, int counter)
+string assembleTypePseudo4(string line, int counter, int counter2)
 {
 	string opCode1, rsCode, rtCode, funct, opCode2, immCode;
 	string function, rs, rt, label;
 	int imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo4(line);
 	
@@ -866,14 +1014,14 @@ string assembleTypePseudo4(string line, int counter)
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
 	//check if valid register
-	checkRegister(rsCode, counter);
-	checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
 	label = parameters[3];
-	imm = simbolTable[label];
+	imm = simbolTable[label]-counter2;
 	
-	if(imm == 0)
+	if(simbolTable[label] == 0)
 	{
 		errorSignal(13, counter);
 		LOG(LEVEL_INFO) << "Line = " << line;
@@ -881,7 +1029,13 @@ string assembleTypePseudo4(string line, int counter)
 	}
 	
 	//if number, transforms string decimal in string binary
-	my_itoa(imm, immCode, 2, 16, counter);
+	noErrors *= my_itoa(imm, immCode, 2, 16, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -894,12 +1048,13 @@ string assembleTypePseudo4(string line, int counter)
 
 //Branch if less than -> blt $rs,$rt,Label = slt $at,$rs,$rt + bne $at,$zero,Label
 //Branch if greater than or equal -> bge $rs,$rt,Label = slt $at,$rs,$rt + beq $at,$zero,Label
-string assembleTypePseudo5(string line, int counter)
+string assembleTypePseudo5(string line, int counter, int counter2)
 {
 	string opCode1, rsCode, rtCode, funct, opCode2, immCode;
 	string function, rs, rt, label;
 	int imm;
 	vector<string> parameters;
+	bool noErrors = true;
 	
 	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo5(line);
 	
@@ -926,22 +1081,28 @@ string assembleTypePseudo5(string line, int counter)
 	rsCode = registerTable[rs];
 	rtCode = registerTable[rt];
 	//check if valid register
-	checkRegister(rsCode, counter);
-	checkRegister(rtCode, counter);
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
 	
 	//identify number if label check simbols table
 	label = parameters[3];
-	imm = simbolTable[label];
+	imm = simbolTable[label]-counter2;
 	
-	if(imm == 0)
+	if(simbolTable[label] == 0)
 	{
 		errorSignal(13, counter);
-		LOG(LEVEL_ERROR) << "Line = " << line;
+		LOG(LEVEL_INFO) << "Line = " << line;
 		return "Error";
 	}
 	
 	//if number, transforms string decimal in string binary
-	my_itoa(imm, immCode, 2, 16, counter);
+	noErrors *= my_itoa(imm, immCode, 2, 16, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
 	
 	//concatenate strings
 	stringstream ss;
@@ -955,18 +1116,20 @@ string assembleTypePseudo5(string line, int counter)
 bool checkRegister(string registerCode, int counter)
 {
 	if(registerCode.size() == 0)
+	{
 		errorSignal(15, counter);
+		return false;
+	}
 	
 	//return code found in string format
 	return true;
 }
 
-void my_itoa(int value, std::string& buf, int base, unsigned int size, int counter)
+bool my_itoa(int value, std::string& buf, int base, unsigned int size, int counter)
 {
 	if(value >= 0 && value < pow(2, size))
 	{
 		int i = 30;
-		
 		buf = "";
 		
 		for(; value && i ; --i, value /= base) buf = "0123456789abcdef"[value % base] + buf;
@@ -975,16 +1138,30 @@ void my_itoa(int value, std::string& buf, int base, unsigned int size, int count
 		{
 			buf = "0" + buf;
 		}
+		
+		return true;
 	}
 	else
 	{
 		if (value<0 && value > -pow(2, size))
 		{
-			errorSignal(10, counter);
+			value = -value - 1;
+			int i = 30;
+			buf = "";
+			
+			for(; value && i ; --i, value /= base) buf = "1023456789abcdef"[value % base] + buf;
+			
+			while(buf.size() < size)
+			{
+				buf = "1" + buf;
+			}
+			
+			return true;
 		}
 		else
 		{
 			errorSignal(9, counter);
+			return false;
 		}
 	}
 }

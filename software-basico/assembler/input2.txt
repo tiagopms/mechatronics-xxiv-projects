@@ -22,7 +22,8 @@ add.s $f7,$f23,$f2
 b label9
 b LabelMove
 bgt $s2,$t3,label
-bge $t5,$s2,lado25show
+bge $s2,$s2,lado25show
+beq $s5,$s2,label
 blt $s7,$t3,label2
 jal label
 j label
