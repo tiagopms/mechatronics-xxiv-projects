@@ -6,7 +6,7 @@ pair<int, string>  identifyToken(string token)
 //	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: [a-z]+.*");
 	pair<int, string> results;
 	regex instruction("(:?[a-z]+(:?\\.[a-z])? .*)|(:?syscall)");
-	regex instructionHeader("[a-z]+(:?\\.[a-z])? ");
+	regex instructionHeader("[a-z]+(:?\\.[a-z])? |(:?syscall)");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: .+");
 	regex labelHeader("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*:");
 	cmatch result;
@@ -15,7 +15,8 @@ pair<int, string>  identifyToken(string token)
 	{
 		results.first = 1;
 		regex_search(token.c_str(), result, instructionHeader);
-		token = token.substr (result.position(),result.length());
+		
+		token = token.substr (result.position(),result.length()-1);
 		results.second = token;
 		LOG(LEVEL_DEBUG) << "It is instruction " << token;
 		return results;
@@ -38,7 +39,7 @@ pair<int, string>  identifyToken(string token)
 
 pair<bool, vector<string> > identifyFunction(string instruction)
 {
-	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?(:?(:?[a-z]+(:?\\.[a-z])? .*)|(:?syscall))");
+	regex correct("(:?[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: )?(:?((:?[a-z]+(:?\\.[a-z])? .*)|(:?syscall)))");
 	regex correctInstruction("(:?(:?[a-z]+(:?\\.[a-z])?)|(:?syscall))");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (1);
@@ -264,7 +265,7 @@ pair<bool, vector<string> > identifyTypeI2(string instruction)
 	regex correctInstruction("[a-z]+");
 	regex correctParameter1("\\$(:?(:?zero)|(:?.{2}))");
 	regex correctParameter2("[0-9]+");
-	regex correctParameter3("\\(\\$(\\$(:?(:?zero)|(:?.{2})))\\)");
+	regex correctParameter3("\\(\\$(:?(:?zero)|(:?.{2}))\\)");
 	regex label("[a-zA-Z]+(?:[0-9]*[a-zA-Z]*)*: ");
 	vector<regex> rules (4);
 	vector<string> tokens (4);
@@ -300,6 +301,7 @@ pair<bool, vector<string> > identifyTypeI2(string instruction)
 		results.second = tokens;
 		return results;
 	}
+	LOG(LEVEL_WARN) << "Labels Found:";
 //	LOG(LEVEL_ERROR) << "Error sintatic error I2";
 	results.first = 0;
 	results.second = tokens;

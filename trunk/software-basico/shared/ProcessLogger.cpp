@@ -95,10 +95,10 @@ string ProcessLogger::getLogVersion(const string& logDir, const string& procName
             const boost::regex processLogFilter(procName+"-([0-9]+)\\.process\\.log");
             boost::smatch processLogMatch;
 
-            if(!boost::regex_match(itr->filename(), processLogMatch, processLogFilter))
+            if(!boost::regex_match(itr->path( ).filename( ).string( ), processLogMatch, processLogFilter))
                 continue;
 
-            LOG(LEVEL_DEBUG) << "process log found: " << itr->filename();
+            LOG(LEVEL_DEBUG) << "process log found: " << itr->path( ).filename( ).string( );;
 
             try
             {

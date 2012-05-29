@@ -1,3 +1,12 @@
+/* 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * */
+
+
 #include <Assembler.hpp>
 
 map<string, vector<string> > instructionTable;
@@ -48,6 +57,7 @@ bool createSimbolsTable()
 	{
 		counter1++;
 		counter2++;
+		
 		//get single line
 		getline(cfg, line);
 		
@@ -92,7 +102,6 @@ bool findLabel(string line, int counter1, int *counter2)
 	{
 		(*counter2)++;
 	}
-	
 	
 	pair <int, string> label = identifyToken(line);
 	
@@ -163,41 +172,47 @@ bool assemble()
 				functionCode = assembleTypeR3(line, counter);
 				break;
 			case 4:
-				functionCode = assembleTypeI1(line, counter);
+				functionCode = assembleTypeR4(line, counter);
 				break;
 			case 5:
-				functionCode = assembleTypeI2(line, counter);
+				functionCode = assembleTypeR5(line, counter);
 				break;
 			case 6:
-				functionCode = assembleTypeI3(line, counter);
+				functionCode = assembleTypeI1(line, counter);
 				break;
 			case 7:
-				functionCode = assembleTypeI4(line, counter, counter2);
+				functionCode = assembleTypeI2(line, counter);
 				break;
 			case 8:
-				functionCode = assembleTypeJ(line, counter);
+				functionCode = assembleTypeI3(line, counter);
 				break;
 			case 9:
-				functionCode = assembleTypeFloat(line, counter);
+				functionCode = assembleTypeI4(line, counter, counter2);
 				break;
 			case 10:
-				functionCode = assembleTypePseudo1(line, counter);
+				functionCode = assembleTypeJ(line, counter);
 				break;
 			case 11:
-				functionCode = assembleTypePseudo2(line, counter);
+				functionCode = assembleTypeFloat(line, counter);
 				break;
 			case 12:
-				functionCode = assembleTypePseudo3(line, counter, counter2);
+				functionCode = assembleTypePseudo1(line, counter);
 				break;
 			case 13:
+				functionCode = assembleTypePseudo2(line, counter);
+				break;
+			case 14:
+				functionCode = assembleTypePseudo3(line, counter, counter2);
+				break;
+			case 15:
 				counter2++;
 				functionCode = assembleTypePseudo4(line, counter, counter2);
 				break;
-			case 14:
+			case 16:
 				counter2++;
 				functionCode = assembleTypePseudo5(line, counter, counter2);
 				break;
-			case 15:
+			case 17:
 				functionCode = SYSCALL_CODE;
 				break;
 			case 30:
@@ -284,31 +299,31 @@ int reconizeType(string line, int counter)
 	{
 		if (typeString[0] == 'I')
 		{
-			type = 3+typeString[1]-48;
+			type = 5+typeString[1]-48;
 		}
 		else
 		{
 			if (typeString[0] == 'J')
 			{
-				type = 8;
+				type = 10;
 			}
 			else
 			{
 				if (typeString[0] == 'F')
 				{
-					type = 9;
+					type = 11;
 				}
 				else
 				{
 					if (typeString[0] == 'P')
 					{
-						type = 9+typeString[1]-48;
+						type = 11+typeString[1]-48;
 					}
 					else
 					{
 						if (typeString[0] == 'S')
 						{
-							type = 15;
+							type = 17;
 						}
 					}
 				}
@@ -483,7 +498,118 @@ string assembleTypeR3(string line, int counter)
 	
 	//concatenate strings
 	stringstream ss;
-	ss << opCode << rsCode << NULL_REGISTER << NULL_REGISTER << NULL_SHANT << funct;
+	//if jalr rd = $31
+	if (funct == "001001")//jalr
+		ss << opCode << rsCode << NULL_REGISTER << LAST_REGISTER << NULL_SHANT << funct;
+	else//jr
+		ss << opCode << rsCode << NULL_REGISTER << NULL_REGISTER << NULL_SHANT << funct;
+	string functionCode = ss.str();
+	
+	//return machine code
+	return functionCode;
+}
+
+//multu $rs,$rt (resultado vai para HI e LO, não para rd)
+//mult $rs,$rt (resultado vai para HI e LO, não para rd)
+//divu $rs,$rt (resultado vai para HI e LO, não para rd)
+//div $rs,$rt (resultado vai para HI e LO, não para rd)
+string assembleTypeR4(string line, int counter)
+{
+	string opCode, rsCode, rtCode, rdCode, funct;
+	string function, rd, rs, rt;
+	vector<string> parameters;
+	bool noErrors = true;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypePseudo1(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		LOG(LEVEL_INFO) << "Line = " << line;
+		errorSignal(7, counter);
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
+	
+	//identify function
+	function = parameters[0];
+	
+	//identify opcode, shant and funct
+	opCode = instructionTable[function][1];
+	funct = instructionTable[function][2];
+	
+	//identify registers
+	rs = parameters[1];
+	rt = parameters[2];
+	
+	//get register codes
+	rsCode = registerTable[rs];
+	rtCode = registerTable[rt];
+	
+	//check if valid registers
+	noErrors *= checkRegister(rsCode, counter);
+	noErrors *= checkRegister(rtCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << rsCode << rtCode << NULL_REGISTER << NULL_SHANT << funct;
+	string functionCode = ss.str();
+	
+	//return machine code
+	return functionCode;
+}
+
+//mflo $rd (manda o valor de LO para $rd)
+//mfhi $rd (manda o valor de HI para $rd)
+string assembleTypeR5(string line, int counter)
+{
+	string opCode, rdCode, funct;
+	string function, rd;
+	vector<string> parameters;
+	bool noErrors = true;
+	
+	pair<bool, vector<string> > encapsuledParameters = identifyTypeR3(line);
+	
+	if(encapsuledParameters.first == false)
+	{
+		LOG(LEVEL_INFO) << "Line = " << line;
+		errorSignal(7, counter);
+		return "Error";
+	}
+	
+	parameters = encapsuledParameters.second;
+	
+	//identify function
+	function = parameters[0];
+	
+	//identify opcode, shant and funct
+	opCode = instructionTable[function][1];
+	funct = instructionTable[function][2];
+	
+	//identify registers
+	rd = parameters[1];
+	
+	//get register codes
+	rdCode = registerTable[rd];
+	
+	//check if valid registers
+	noErrors *= checkRegister(rdCode, counter);
+	
+	//check for register or imediate errors
+	if (noErrors == false)
+	{
+		return "Error";
+	}
+	
+	//concatenate strings
+	stringstream ss;
+	ss << opCode << NULL_REGISTER << NULL_REGISTER << rdCode << NULL_SHANT << funct;
 	string functionCode = ss.str();
 	
 	//return machine code
@@ -686,7 +812,7 @@ string assembleTypeI4(string line, int counter, int counter2)
 	
 	//identify number if label check simbols table
 	label = parameters[3];
-	imm = simbolTable[label]-counter2;
+	imm = simbolTable[label]-counter2-1;
 	
 	if(simbolTable[label] == 0)
 	{
@@ -953,7 +1079,7 @@ string assembleTypePseudo3(string line, int counter, int counter2)
 	
 	//identify number if label check simbols table
 	label = parameters[1];
-	imm = simbolTable[label]-counter2;
+	imm = simbolTable[label]-counter2-1;
 	
 	if(simbolTable[label] == 0)
 	{
@@ -1019,7 +1145,7 @@ string assembleTypePseudo4(string line, int counter, int counter2)
 	
 	//identify number if label check simbols table
 	label = parameters[3];
-	imm = simbolTable[label]-counter2;
+	imm = simbolTable[label]-counter2-1;
 	
 	if(simbolTable[label] == 0)
 	{
@@ -1086,7 +1212,7 @@ string assembleTypePseudo5(string line, int counter, int counter2)
 	
 	//identify number if label check simbols table
 	label = parameters[3];
-	imm = simbolTable[label]-counter2;
+	imm = simbolTable[label]-counter2-1;
 	
 	if(simbolTable[label] == 0)
 	{
