@@ -14,12 +14,13 @@
 #include <iomanip>
 #include <armadillo>
 
-#define INPUT_FILE		"input2.txt"
-#define OUTPUT_FILE		"output.txt"
+#define INPUT_FILE		"input4.txt"
+#define OUTPUT_FILE		"output4.txt"
 
 #define NULL_REGISTER	"00000"
 #define ZERO_REGISTER	"00000"
 #define AT_REGISTER		"00001"
+#define LAST_REGISTER	"11111"
 #define NULL_SHANT		"00000"
 #define ZERO_IMM		"0000000000000000"
 #define SYSCALL_CODE	"00000000000000000000000000001100"
@@ -38,6 +39,8 @@ int reconizeType(string line, int counter);
 string assembleTypeR1(string line, int counter);
 string assembleTypeR2(string line, int counter);
 string assembleTypeR3(string line, int counter);
+string assembleTypeR4(string line, int counter);
+string assembleTypeR5(string line, int counter);
 string assembleTypeI1(string line, int counter);
 string assembleTypeI2(string line, int counter);
 string assembleTypeI3(string line, int counter);

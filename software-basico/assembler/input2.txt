@@ -6,7 +6,7 @@ sll $s1,$zero,1
 label2: sll $s1,$zero,1
 jr $a3
 label3: jr $zero
-label: addi $t5,$s5,17987
+addi $t5,$s5,17987
 addi $t4,$zero,17987
 label53: lui $s3,58
 lui $zero,10939
@@ -34,3 +34,54 @@ labelNova: lw $a2,58($zero)
 move $zero,$zero
 LabelMove: move $t5,$zero
 lado25show: add $v0,$zero,$s1
+add $t0,$t1,$t2
+addu $t0,$t1,$t2
+label: sub $t0,$t1,$t2
+subu $t0,$t1,$t2
+and $t0,$t1,$t2
+nor $t0,$t1,$t2
+or $t0,$t1,$t2
+xor $t0,$t1,$t2
+sll $t0,$t1,2
+srl $t0,$t1,2
+sra $t0,$t1,2
+sllv $t0,$t1,$t2
+srlv $t0,$t1,$t2
+srav $t0,$t1,$t2
+slt $t0,$t1,$t2
+sltu $t0,$t1,$t2
+jr $t0
+jalr $t0
+addi $t0,$t1,2
+addiu $t0,$t1,2
+andi $t0,$t1,2
+ori $t0,$t1,2
+xori $t0,$t1,2
+slti $t0,$t1,2
+sltiu $t0,$t1,2
+beq $t0,$t1,label
+bne $t0,$t1,label
+lb $t0,2($t1)
+lbu $t0,2($t1)
+lh $t0,2($t1)
+lhu $t0,2($t1)
+lui $t0,2
+lw $t0,2($t1)
+sb $t0,2($t1)
+sh $t0,2($t1)
+sw $t0,2($t1)
+j label
+jal label
+move $t0,$t1
+clear $t0
+b label
+bgt $t0,$t1,label
+blt $t0,$t1,label
+bge $t0,$t1,label
+bge $s2,$s2,lado25show
+add.s $f0,$f1,$f2
+sub.s $f0,$f1,$f2
+add.d $f0,$f1,$f2
+syscall
+sub.d $f0,$f1,$f2
+syscall
